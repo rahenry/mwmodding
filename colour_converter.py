@@ -1,5 +1,9 @@
 import colour
 import subprocess
+import os
+
+if not (os.path.exists("icons")):
+    os.makedirs("icons")
 
 blackness_threshhold = 0.15
 def get_hsl_average(file_name):
@@ -33,7 +37,7 @@ def recolour(source_file, objective_file, output_file):
     command = ['convert', source_file, '-modulate', str(lightness_argument)+','+str(saturation_argument)+','+str(hue_argument), output_file]
     proc = subprocess.call(command)
 
-    command = ['convert', source_file, objective_file, output_file, '+append', 'test.jpg']
+    #command = ['convert', source_file, objective_file, output_file, '+append', 'test.jpg']
     proc = subprocess.call(command)
 
 
