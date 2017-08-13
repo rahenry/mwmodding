@@ -5,6 +5,11 @@ import colour_converter
 
 NULL = '\x00'
 
+def get_school(mgef):
+    medt = mgef['MEDT'][0]
+    return struct.unpack('<i', medt[0:4])[0]
+
+mgef_info = {}
 def process_mgefs(records):
     schools = index_data.get_data('schools')
     reference_icons = {}
@@ -18,6 +23,7 @@ def process_mgefs(records):
     mgef_data = mwdata.read_newline_separated("input_data/magic_effects")
     mgef_new_records = {}
     for d in mgef_data:
+        d = map(lambda x: x.lower(), d)
         name = ""
         for mgef in index_data.get_data("magic_effects"):
             if mgef in d:
@@ -52,5 +58,7 @@ def process_mgefs(records):
                     output_file = "icons/b_" + name.lower() + ".dds"
                     colour_converter.recolour(source_file, objective_file, output_file)
 
-    f = open("test_magic_effects.esp", 'w+')
-    f.write(mwdata.write_esp({"MGEF" : mgef_new_records}))
+    for ind, mgef in records['MGEF'].iteritems():
+        mgef_info[index_data.get_index(ind, "magic_effects")] = get_school(mgef)
+    for ind, mgef in mgef_new_records.iteritems():
+        mgef_info[index_data.get_index(ind, "magic_effects")] = get_school(mgef)

@@ -103,9 +103,21 @@ def read_icon_path(record):
 def read_newline_separated(file_name):
     f = open(file_name)
     d = f.read()
-    print d
     d = d.split('\n\n')
     d = map(lambda x: x.split('\n'), d)
+    for z in d:
+        if z[-1] == '':
+            z = z[0:-1]
+    #return d
+    g = open(file_name)
+    d = g.read()
+    d = d.replace('\n\n', '\nXXXXX')
+    d = d.split('XXXXX')
+    d = map(lambda x: x.split('\n')[:-1], d)
+
+    for x in d:
+        if (x == []):
+            d.remove([])
     return d
 
 def write_esp(records):
@@ -122,6 +134,20 @@ def write_esp(records):
     tes3["MAST"] = ["Morrowind.esm"+NULL]
     tes3["DATA"] = [struct.pack('<q', 5)]
     res = encode_record("TES3", tes3) + data
+
+    return res
+
+def unpack_flags(flags):
+    s = len(flags) * 8
+    val = struct.unpack('<i', flags)[0]
+    res = []
+    for i in range(s):
+        res.append(0)
+    for i in range(s):
+        z = 2 ** (s-i-1)
+        if val >= z:
+            res[i] = 1
+            val -= z
 
     return res
 

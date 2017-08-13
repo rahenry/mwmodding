@@ -2,6 +2,8 @@ import index_data
 import mwdata
 import struct
 import math
+import os
+import magic_effects
 
 PREFIX = "spellmod"
 NULL = '\x00'
@@ -12,7 +14,8 @@ AREA_EFFICIENCY_FACTOR = -0.2*math.log(0.75)
 SDEV_EFFICIENCY_MAX = 1.1
 SUCCESS_THRESHHOLD = 0.8
 
-input_files = ["input_data/spells"]
+input_dir = "input_data/spells"
+input_files = map(lambda x: input_dir + '/' + x, os.listdir(input_dir))
 
 raw_data = []
 for inp in input_files:
@@ -174,6 +177,7 @@ def process_spell(d):
     first_line = d[0].split()
     cost = 5
     
+    res = {}
     name = ''
     z = first_line[-1]
     if (is_number(z)): 
@@ -186,43 +190,48 @@ def process_spell(d):
     else:
         name = d[0]
     
-    print name
+    instances = [INSTANCES_MIN_BASE, INSTANCES_MAX_BASE]
     if (cost < 1): cost = 1
 
-    
-    second_list = d[1].split()
-    second_list_numbers = []
-    flags = []
-    for x in second_list:
-        if is_number(x): second_list_numbers.append(int(x))
-        else: flags.append(x.lower())
-
-    typeflag = 0
-    for t in index_data.index_data["spell_types"]:
-        if t in flags:
-            typeflag = index_data.get_index(t, "spell_types")
-
-    
-    instances = [INSTANCES_MIN_BASE, INSTANCES_MAX_BASE]
-    if (len(second_list_numbers) > 0): instances[0] = second_list_numbers[0]
-    if (len(second_list_numbers) > 1): instances[1] = second_list_numbers[1]
-
-    res = {}
-    res['NAME'] = [name.lower() + NULL]
-    res['FNAM'] = [name + NULL]
-    res['SPDT'] = [struct.pack('<i', typeflag) + struct.pack('<i', cost) + struct.pack('<i', get_spell_flags(second_list))]
     res['ENAM'] = []
     res['npcs'] = []
-    res['instances'] = instances
-    res['flags'] = flags
-    res['flags'] = flags
-
-    for line in d[2:]:
+    flags = []
+    typeflag = 0
+    for line in d[1:]:
         entries = line.split()
         if entries[0].lower() == "npcs":
             res['npcs'] += process_npcs(entries[1:])
+        elif entries[0].lower() == "flags":
+            second_line = line.split()
+            second_line_numbers = []
+            for x in second_line:
+                if is_number(x): second_line_numbers.append(int(x))
+                else: flags.append(x.lower())
+
+            for t in index_data.index_data["spell_types"]:
+                if t in flags:
+                    typeflag = index_data.get_index(t, "spell_types")
+
+            if (len(second_line_numbers) > 0): instances[0] = second_line_numbers[0]
+            if (len(second_line_numbers) > 1): instances[1] = second_line_numbers[1]
+
         else: 
             res['ENAM'].append(process_ENAM(entries, cost, flags))
+
+    res['NAME'] = [name.lower() + NULL]
+    res['FNAM'] = [name + NULL]
+    res['SPDT'] = [struct.pack('<i', typeflag) + struct.pack('<i', cost) + struct.pack('<i', get_spell_flags(flags))]
+    res['instances'] = instances
+    res['flags'] = flags
+    res['cost'] = cost
+    res['schools'] = []
+    res['type'] = typeflag
+    for e in res['ENAM']:
+        effect = struct.unpack('<h', e[0:2])[0]
+        school = magic_effects.mgef_info[effect]
+        res['schools'].append(school)
+        
+
 
     return res
 
