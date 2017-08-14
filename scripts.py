@@ -37,6 +37,21 @@ def endscript(name):
 def make_script(name, func):
     return startscript(name) + func() + endscript(name)
 
+def pack_script(script, name):
+    res = {}
+    SCHD = ""
+    SCHD += struct.pack("<32s", name)
+    SCHD += struct.pack("<i", 0)
+    SCHD += struct.pack("<i", 0)
+    SCHD += struct.pack("<i", 0)
+    SCHD += struct.pack("<i", 0)
+    SCHD += struct.pack("<i", 0)
+    res["SCHD"] = [SCHD]
+    res["SCVR"] = [""]
+    res["SCDT"] = [""]
+    res["SCTX"] = [script]
+    return res
+
 def s_buff_init():
     s = ""
     for name, b in buffs.iteritems():
@@ -54,20 +69,14 @@ def s_buff_init():
 
     return s
 
-def pack_script(script, name):
-    res = {}
-    SCHD = ""
-    SCHD += struct.pack("<32s", name)
-    SCHD += struct.pack("<i", 0)
-    SCHD += struct.pack("<i", 0)
-    SCHD += struct.pack("<i", 0)
-    SCHD += struct.pack("<i", 0)
-    SCHD += struct.pack("<i", 0)
-    res["SCHD"] = [SCHD]
-    res["SCVR"] = [""]
-    res["SCDT"] = [""]
-    res["SCTX"] = [script]
-    return res
+def s_buff_dispel():
+    # dispel all buffs on the player
+    s = ""
+    for name, b in buffs.iteritems():
+        spellid = mwdata.get_subrecord("spellid", b)
+        buffid = mwdata.get_subrecord("NAME", b)[0:-1]
+
+    return s
 
 script_list = {"s_buff_init" : s_buff_init}
 scripts = {}
@@ -77,3 +86,7 @@ for name, f in script_list.iteritems():
 
 print scripts
 
+globs = {
+        "player_current_buffs" : 0,
+        "player_buff_points" : 0,
+        }

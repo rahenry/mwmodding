@@ -1,7 +1,7 @@
 import struct 
 import index_data
 import mwdata
-record_types_of_interest = ['MGEF', 'SPEL', 'SCPT', 'RACE', 'NPC_']
+record_types_of_interest = ['MGEF', 'SPEL', 'SCPT', 'RACE', 'NPC_', 'GLOB']
 records = mwdata.extract_records(record_types_of_interest)
 
 import magic_effects
