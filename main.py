@@ -7,7 +7,7 @@ records = mwdata.extract_records(record_types_of_interest)
 import magic_effects
 magic_effects.process_mgefs(records)
 import spellgen
-import buffs
+import scripts
 import races
 races.process_races(records)
 
