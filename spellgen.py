@@ -4,6 +4,8 @@ import struct
 import math
 import os
 import magic_effects
+import numpy as np
+import matplotlib.pyplot as plt
 
 PREFIX = "spellmod"
 NULL = '\x00'
@@ -12,7 +14,7 @@ INSTANCES_MAX_BASE = 1000
 DURATION_EFFICIENCY_FACTOR = 1.0
 AREA_EFFICIENCY_FACTOR = -0.2*math.log(0.75)
 SDEV_EFFICIENCY_MAX = 1.1
-SUCCESS_THRESHHOLD = 0.8
+SUCCESS_THRESHHOLD = 0.5
 
 input_dir = "input_data/spells"
 input_files = map(lambda x: input_dir + '/' + x, os.listdir(input_dir))
@@ -195,6 +197,7 @@ def process_spell(d):
 
     res['ENAM'] = []
     res['npcs'] = []
+    res['buffpoints'] = 1
     flags = []
     typeflag = 0
     for line in d[1:]:
@@ -206,6 +209,13 @@ def process_spell(d):
             second_line_numbers = []
             for x in second_line:
                 if is_number(x): second_line_numbers.append(int(x))
+                elif ("buff" in x):
+                    flags.append("buff")
+                    n = ''
+                    for y in x:
+                        if is_number(y): n += y
+                    if (is_number(n)): res['buffpoints'] = int(n)
+                    else: res['buffpoints'] = 1
                 else: flags.append(x.lower())
 
             for t in index_data.index_data["spell_types"]:
@@ -248,3 +258,12 @@ def test1():
     print l
     for x in l:
         print duration_efficiency(x)
+
+def test2():
+    return
+    points = range(1,150)
+    skill = map(lambda x: convert_skill_to_cost(x), points)
+    plt.plot(points, skill)
+    plt.show()
+    
+

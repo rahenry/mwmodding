@@ -28,3 +28,4 @@ f.write(mwdata.write_esp(test_output))
 #for ind, race in records['RACE'].iteritems():
 
     #print ind
+spellgen.test2()

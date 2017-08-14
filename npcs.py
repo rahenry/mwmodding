@@ -19,10 +19,12 @@ def populate_npcs(records, spells):
                 new_id = ident.split()[0].lower()
                 spellmaking_npcs[new_id] = process_npc(npc, spells)
     for ident, npc  in spellmaking_npcs.iteritems():
-        print "..."
-        print ident
+        continue
+        #print "..."
+        #print ident
         #print npc
-        print npc['spell_keys']
+        #print npc['spell_keys']
+        1
     return spellmaking_npcs
 
 def get_random_spell(spell_keys):

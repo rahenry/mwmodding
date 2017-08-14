@@ -4,8 +4,14 @@ import spellgen
 
 NULL = '\x00'
 NEWLINE = struct.pack('b', 13) + '\n'
+ENDIF = "endif" + NEWLINE
+ELSE = "else" + NEWLINE
+PREFIX = "spellmod_"
+
 buffs = {}
 for name, s in spellgen.spells.iteritems():
+    #print name
+    #print s["flags"]
     if "buff" in s["flags"]:
         buff = dict(s)
         buff['NAME'] = [buff['NAME'][0][:-1] + "_buffeffect" + NULL]
@@ -15,41 +21,59 @@ for name, s in spellgen.spells.iteritems():
 
 spellgen.spells.update(buffs)
 
-script1 = ""
-script1 += "begin script1" + NEWLINE
 
-for name, b in buffs.iteritems():
-    s = {}
-    script1 += "if player->getspelleffects " + mwdata.get_subrecord("spellid", b) + " == 1" + NEWLINE
-    script1 += "player->removespelleffects " + mwdata.get_subrecord("spellid", b) + NEWLINE
+def ifplayer(func, arg):
+    return "if player->" + func + ''' "''' + arg + '''"''' + " == 1" + NEWLINE
 
-    script1 += "if player->getspell " + mwdata.get_subrecord("NAME", b)[0:-1] + " == 1" + NEWLINE
-    script1 += "player->removespell " + mwdata.get_subrecord("NAME", b)[0:-1] + NEWLINE
-    script1 += "elseif player->getspell " + mwdata.get_subrecord("NAME", b)[0:-1] + " == 0" + NEWLINE
-    script1 += "player->addspell " + mwdata.get_subrecord("NAME", b)[0:-1] + NEWLINE
-    script1 += "endif" + NEWLINE
+def doplayer(func, arg):
+    return "player->" + func + ''' "''' + arg + '''"''' + NEWLINE
 
-    script1 += "endif" + NEWLINE
+def startscript(name):
+    return "begin " + name + NEWLINE
 
-script1 += "end script1"
+def endscript(name):
+    return "end " + name
 
+def make_script(name, func):
+    return startscript(name) + func() + endscript(name)
+
+def s_buff_init():
+    s = ""
+    for name, b in buffs.iteritems():
+        spellid = mwdata.get_subrecord("spellid", b)
+        buffid = mwdata.get_subrecord("NAME", b)[0:-1]
+
+        s += ifplayer("getspelleffects", spellid)
+        s += doplayer("removespelleffects", spellid)
+        s += ifplayer("getspell", buffid)
+        s += doplayer("removespell", buffid)
+        s += ELSE
+        s += doplayer("addspell", buffid)
+        s += ENDIF
+        s += ENDIF
+
+    return s
+
+def pack_script(script, name):
+    res = {}
+    SCHD = ""
+    SCHD += struct.pack("<32s", name)
+    SCHD += struct.pack("<i", 0)
+    SCHD += struct.pack("<i", 0)
+    SCHD += struct.pack("<i", 0)
+    SCHD += struct.pack("<i", 0)
+    SCHD += struct.pack("<i", 0)
+    res["SCHD"] = [SCHD]
+    res["SCVR"] = [""]
+    res["SCDT"] = [""]
+    res["SCTX"] = [script]
+    return res
+
+script_list = {"s_buff_init" : s_buff_init}
 scripts = {}
-scripts["script1"] = {}
-SCHD = ""
-SCHD += struct.pack("<32s", "script1")
-SCHD += struct.pack("<i", 0)
-SCHD += struct.pack("<i", 0)
-SCHD += struct.pack("<i", 0)
-SCHD += struct.pack("<i", 0)
-SCHD += struct.pack("<i", 0)
-scripts["script1"]["SCHD"] = [SCHD]
-scripts["script1"]["SCVR"] = [""]
-scripts["script1"]["SCDT"] = [""]
-scripts["script1"]["SCTX"] = [script1]
+for name, f in script_list.iteritems():
+    script = make_script(name, f)
+    scripts[name] = pack_script(script, name)
 
-    
+print scripts
 
-
-f = open("chartest", 'w+')
-for i in range(25):
-    f.write(struct.pack('b', 13))
