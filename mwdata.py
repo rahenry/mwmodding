@@ -1,9 +1,10 @@
 import struct 
 import index_data
+import os
 
 NULL = '\x00'
 
-openmw_data_dir = "/home/rah/.local/share/openmw/data"
+openmw_data_dir = os.path.expanduser("~/.local/share/openmw/data")
 data_files = map(lambda x: openmw_data_dir + '/' + x, ["Morrowind.esm", "Tribunal.esm", "Bloodmoon.esm"])
 
 record_type_orderings = {}
