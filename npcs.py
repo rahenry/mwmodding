@@ -38,6 +38,7 @@ def process_npc(npc, spells):
     npc['spell_keys'] = []
     spell_keys = []
     for k in spells.iterkeys():
+        if "special" in spells[k]['flags']: continue
         if spells[k]['type'] == 0:
             spell_keys.append(k)
     n_spells = 0

@@ -7,7 +7,7 @@ import magic_effects
 import numpy as np
 import matplotlib.pyplot as plt
 
-PREFIX = "spellmod"
+PREFIX = "spellmod_"
 NULL = '\x00'
 INSTANCES_MIN_BASE = 5
 INSTANCES_MAX_BASE = 1000
@@ -228,7 +228,7 @@ def process_spell(d):
         else: 
             res['ENAM'].append(process_ENAM(entries, cost, flags))
 
-    res['NAME'] = [name.lower() + NULL]
+    res['NAME'] = [PREFIX + name.lower() + NULL]
     res['FNAM'] = [name + NULL]
     res['SPDT'] = [struct.pack('<i', typeflag) + struct.pack('<i', cost) + struct.pack('<i', get_spell_flags(flags))]
     res['instances'] = instances

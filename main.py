@@ -15,9 +15,11 @@ import npcs
 spellmaking_npcs = npcs.populate_npcs(records, spellgen.spells)
 
 test_output = {'SPEL' : spellgen.spells,
-        'SCPT' : buffs.scripts,
+        'SCPT' : scripts.scripts,
         #'RACE' : races.races,
         'NPC_' : spellmaking_npcs,
+        'GLOB' : scripts.globs,
+        'SSCR' : scripts.start_scripts,
         }
 f = open("test.esp", 'w+')
 f.write(mwdata.write_esp(test_output))
