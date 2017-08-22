@@ -1,269 +1,277 @@
-import index_data
-import mwdata
+from parameters import *
+import utility as ut
+import index_data as idata
+import esm
+
 import struct
-import math
 import os
-import magic_effects
-import numpy as np
-import matplotlib.pyplot as plt
+import schema
 
-PREFIX = "spellmod_"
-NULL = '\x00'
-INSTANCES_MIN_BASE = 5
-INSTANCES_MAX_BASE = 1000
-DURATION_EFFICIENCY_FACTOR = 1.0
-AREA_EFFICIENCY_FACTOR = -0.2*math.log(0.75)
-SDEV_EFFICIENCY_MAX = 1.1
-SUCCESS_THRESHHOLD = 0.5
+input_dir = os.path.abspath("content/spells")
+input_files = ut.get_file_list(input_dir)
 
-input_dir = "input_data/spells"
-input_files = map(lambda x: input_dir + '/' + x, os.listdir(input_dir))
+attack_types = {}
+new_spells = {}
 
-raw_data = []
-for inp in input_files:
-    raw_data += mwdata.read_newline_separated(inp)
-
-def is_number(s):
-    try:
-        float(s)
-        return True
-    except ValueError:
-        return False
-
-def convert_skill_to_willpower(s):
-    pts = ((35., 50.), (100., 105.))
+def skill_to_will(s):
+    pts = ((5., 40.), (100., 105.))
     grad = (pts[1][1] - pts[0][1]) / (pts[1][0] - pts[0][0])
     c = pts[0][1] - grad * pts[0][0]
     return grad * s + c
 
-def convert_skill_to_luck(s):
-    pts = ((35., 40.), (100., 100.))
+def skill_to_luck(s):
+    pts = ((5., 40.), (100., 100.))
     grad = (pts[1][1] - pts[0][1]) / (pts[1][0] - pts[0][0])
     c = pts[0][1] - grad * pts[0][0]
     return grad * s + c
 
-def convert_skill_to_cost(s):
-    return 2.*s + 0.2*convert_skill_to_willpower(s) + 0.1*convert_skill_to_luck(s) - SUCCESS_THRESHHOLD * 100. / 1.25
+def skill_to_cost(s):
+    #print s, 2.*s + 0.2*skill_to_will(s) + 0.1*skill_to_luck(s) - SUCCESS_THRESHHOLD * 100. / 1.25
+    return 2.*s + 0.2*skill_to_will(s) + 0.1*skill_to_luck(s) - SUCCESS_THRESHHOLD * 100. / 1.25
 
-def get_spell_flags(line):
-    auto_calc = False
-    PC_start = False
-    always_succeeds = False
-    for x in line:
-        x = x.lower()
-        if "auto" in x: auto_calc = True
-        if "pc" in x or "start" in x: PC_start = True
-        if "always" in x or "succ" in x: always_succeeds = True
-
-    return auto_calc * 1 + PC_start * 2 + always_succeeds * 4
-
-def process_npcs(d):
-    res = []
-    for npc in d:
-        res.append(npc)
+def make_spell_flags(flags):
+    res = 0
+    for f in flags:
+        f = ut.reductions(f)
+        if 'auto' in f: res += 1
+        if 'pc' in f or 'start' in f: res += 2
+        if 'always' in f or 'succ' in f: res += 4
     return res
 
-def get_power(cost):
-    return cost / 3.0
+def calc_minmax(mean, var):
+    if var > 1.0: var = 1.0
+    if var < 0.0: var = 0.0
+    return (mean * (1.0-var), mean * (1.0+var))
 
-def calc_minmax(mean, sdev):
-    return (mean * (1.0 - sdev), mean * (1.0 + sdev))
-
-def duration_efficiency(d):
+def eff_duration(d):
     res = 1.0
-    if (d == 0): res = 0.9
-    if (d == 2): res = 1.1
-    if (d > 2): 
-        A = 1.2 / math.log(3.0 * DURATION_EFFICIENCY_FACTOR)
-        res = A * math.log(d*DURATION_EFFICIENCY_FACTOR)
+    if (d==0): res = 0.95
+    if (d==2): res = 1.05
+    if (d > 2):
+        A = DURATION_EFFICIENCY_COEF
+        res = A * math.log(d * DURATION_EFFICIENCY_FACTOR)
     return res
 
-def area_efficiency(a):
-    return math.exp(AREA_EFFICIENCY_FACTOR * a)
-
-def sdev_efficiency(sdev):
-    return 1.0 + sdev * (SDEV_EFFICIENCY_MAX - 1.0)
-
-def calc_mags(effect_name, eff, sdev, duration, area, cost):
-    eff *= duration_efficiency(int(duration)) * area_efficiency(int(area)) * sdev_efficiency(sdev)
-    power = eff * get_power(int(cost))
-    return map(int, calc_minmax(power, sdev))
-    
-def process_ENAM(d, cost, flags):
-    res = ""
-
-    effect_name = index_data.get_alias(d[0], "magic_effects")
-    effect_id = index_data.get_index(effect_name, "magic_effects")
-
-    offset = 0
-    attr_id = -1
-    if ("attribute" in effect_name):
-        attr_id = index_data.get_index(d[1], "attributes")
-        offset = 1
-
-    skill_id = -1
-    if ("skill" in effect_name):
-        skill_id = index_data.get_index(d[1], "skills")
-        offset = 1
-
-    res += struct.pack("<h", effect_id)
-    res += struct.pack("<b", skill_id)
-    res += struct.pack("<b", attr_id)
-
-    ran = "self"
-    calc_method = "minmax"
-    d_numbers = []
-    for x in d[1+offset:]:
-        if is_number(x):
-            d_numbers.append(float(x))
-        elif (x == '!'):
-            calc_method = "effdev"
-        else:
-            r = index_data.get_alias(x, "ranges")
-            if r: ran = r
-
-    magmin = 1
-    magmax = 1
-    area = 0
-    duration = 0
-    if ("buff" in flags):
-        duration = 999
-
-    N = len(d_numbers)
-    if (calc_method == "minmax"):
-        if (N == 1):
-            magmin = d_numbers[0]
-            magmax = d_numbers[0]
-        if (N == 2):
-            magmin = d_numbers[0]
-            magmax = d_numbers[0]
-            duration = d_numbers[1]
-        if (N == 3):
-            magmin = d_numbers[0]
-            magmax = d_numbers[1]
-            duration = d_numbers[2]
-        if (N >= 4):
-            magmin = d_numbers[0]
-            magmax = d_numbers[1]
-            duration = d_numbers[2]
-            area = d_numbers[3]
-    else: # calc_method == effdev
-        eff = 1.0
-        sdev = 0.0
-        if (N == 1):
-            eff = d_numbers[0]
-        if (N == 2):
-            eff = d_numbers[0]
-            duration = d_numbers[1]
-        if (N == 3):
-            eff = d_numbers[0]
-            sdev = d_numbers[1]
-            duration = d_numbers[2]
-        if (N >= 4):
-            eff = d_numbers[0]
-            sdev = d_numbers[1]
-            duration = d_numbers[2]
-            area = d_numbers[3]
-
-        (magmin, magmax) = calc_mags(effect_name, eff, sdev, duration, area, cost)
-
-    res += struct.pack("<i", index_data.get_index(ran, "ranges"))
-    res += struct.pack("<i", area)
-    res += struct.pack("<i", duration)
-    res += struct.pack("<i", magmin)
-    res += struct.pack("<i", magmax)
-
-    return res
-
-def process_spell(d):
-    first_line = d[0].split()
-    cost = 5
-    
-    res = {}
-    name = ''
-    z = first_line[-1]
-    if (is_number(z)): 
-        cost = int(z)
-        name = d[0][0:-len(z)-1]
-    elif (is_number(z[:-1]) and z[-1] == "s"):
-        skill = int(z[:-1])
-        cost = convert_skill_to_cost(skill)
-        name = d[0][0:-len(z)-1]
+def eff_area(a):
+    if a < 0.9: return 1.0
+    if a <= area_efficiency_pts[1][0]+0.1:
+        pts = ((1., 1.), area_efficiency_pts[1])
+        grad = (pts[1][1] - pts[0][1]) / (pts[1][0] - pts[0][0])
+        c = pts[0][1] - grad * pts[0][0]
+        res = a*grad + c
     else:
-        name = d[0]
-    
-    instances = [INSTANCES_MIN_BASE, INSTANCES_MAX_BASE]
-    if (cost < 1): cost = 1
+        res = AREA_EFFICIENCY_COEF * pow(a, -AREA_EFFICIENCY_POWER)
+    return res
+
+def eff_var(v):
+    return 1.0 + v * (SDEV_EFFICIENCY_MAX - 1.0)
+
+def calc_mag(spell):
+    if spell['magic_effect'] in attack_types:
+        x = attack_types[spell['magic_effect']]['cost']
+
+    dur = spell['duration']
+    if dur < 0.1: dur = 1.0
+    spell['power'] = spell['efficiency'] * eff_duration(spell['duration']) * eff_area(spell['area']) * eff_var(spell['variability']) * spell['cost'] * x / SPELL_ATTACK_BASE_COST / dur
+    (spell['min'], spell['max']) = calc_minmax(spell['power'], spell['variability'])
+
+def read_attack_types():
+    data = ut.read_newline_sep(os.path.abspath('data/spell_attack_types'))
+    for d in data:
+        attack_types[idata.complete_key(d[0], 'magic_effects')] = schema.decode_plaintext(d[1:], 'spell_attack')
+
+def build_ENAM(d, spell_rec, autobuild):
+    res = {}
+    d = d.split()
+
+    res['skill'] = -1
+    res['name'] = spell_rec['FNAM']
+    res['attribute'] = -1
+    res['cost'] = spell_rec['cost']
+
+    params = ['range', 'magic_effect', 'skill', 'attribute']
+    number_data = []
+    for x in d:
+        number = ut.is_numeric(x)
+        if number: 
+            number_data.append(x)
+        else:
+            for p in params:
+                #val = idata.try_subkeys(d, p+'s')
+                val = idata.complete_key(x, p+'s')
+                if val:
+                    res[p] = val
+                    break
+                    
+    if 'range' not in res:
+        if res['magic_effect'] in attack_types:
+            res['range'] = 1 #touch
+        else:
+            res['range'] = 0 #self
+
+    if autobuild:
+        res.update(schema.decode_plaintext(number_data, 'ENAM_subdata_autobuild'))
+        if 'efficiency' not in res: res['efficiency'] = 1.0
+        if 'variability' not in res: res['variability'] = 0.0
+        if not 'duration' in res: res['duration'] = 1
+        if not 'area' in res: res['area'] = 1
+        calc_mag(res)
+    else:
+        res.update(schema.decode_plaintext(number_data, 'ENAM_subdata'))
+
+    if not 'min' in res: res['min'] = 1
+    if not 'max' in res: res['max'] = res['min']
+    if not 'duration' in res: res['duration'] = 1
+    if not 'area' in res: res['area'] = 1
+
+    if 'buff' in spell_rec['flags']:
+        res['duration'] = 0
+    spell_rec['duration'] = res['duration']
+
+    res['mag'] = 0.5 * (res['min'] + res['max'])
+    res['school'] = idata.get(idata.get(res['magic_effect'], 'magic_effects'), 'mgef_to_school')
+
+    res['data'] = schema.encode_subrecord(res, 'ENAM')
+    return res
+
+def read_spell_plaintext(data):
+    res = {}
+    flags = []
+
+    data[0] = data[0].split()
+    cost = data[0][-1]
+    if (ut.is_numeric(cost) or ut.is_numeric(cost[0:-1])):
+        data[0].remove(cost)
+        if 's' in cost:
+            cost = cost.replace('s', '')
+            flags.append('skillcalc')
+        if 'skillcalc' in flags:
+            res['cost'] = skill_to_cost(float(cost))
+        else:
+            res['cost'] = float(cost)
+    else:
+        res['cost'] = 1
+
+    name = ' '.join(data[0])
+    res['FNAM'] = name
+    res['NAME'] = PREFIX + ut.reductions(name)
+    res['flags'] = []
+    res['schools'] = []
+
+
+    for d in data[1:]:
+        if 'flags' in d:
+            s = d.split()
+            s.remove('flags')
+            res['flags'] += s
+            data.remove(d)
+
+    res['spell_type'] = 0
+    for f in flags:
+        spell_type = idata.find_key(f, 'spell_types')
+        if spell_type: res['spell_type'] = spell_type
+    res['spell_flags'] = make_spell_flags(res['flags'])
 
     res['ENAM'] = []
-    res['npcs'] = []
-    res['buffpoints'] = 1
-    flags = []
-    typeflag = 0
-    for line in d[1:]:
-        entries = line.split()
-        if entries[0].lower() == "npcs":
-            res['npcs'] += process_npcs(entries[1:])
-        elif entries[0].lower() == "flags":
-            second_line = line.split()
-            second_line_numbers = []
-            for x in second_line:
-                if is_number(x): second_line_numbers.append(int(x))
-                elif ("buff" in x):
-                    flags.append("buff")
-                    n = ''
-                    for y in x:
-                        if is_number(y): n += y
-                    if (is_number(n)): res['buffpoints'] = int(n)
-                    else: res['buffpoints'] = 1
-                else: flags.append(x.lower())
+    res['enams'] = []
+    for d in data[1:]:
+        autobuild = False
+        if '!' in d:
+            d = d.replace('!', '')
+            autobuild = True
+        new_enam = build_ENAM(d, res, autobuild)
+        res['ENAM'].append(new_enam['data'])
+        res['enams'].append(new_enam)
 
-            for t in index_data.index_data["spell_types"]:
-                if t in flags:
-                    typeflag = index_data.get_index(t, "spell_types")
+    res['SPDT'] = schema.encode_subrecord(res, 'SPDT')
+    return res
+    
 
-            if (len(second_line_numbers) > 0): instances[0] = second_line_numbers[0]
-            if (len(second_line_numbers) > 1): instances[1] = second_line_numbers[1]
+read_attack_types()
+for f in input_files:
+    data = ut.read_newline_sep(f)
+    for d in data:
+        new_spell = read_spell_plaintext(d)
+        new_spells[new_spell['NAME']] = new_spell
 
-        else: 
-            res['ENAM'].append(process_ENAM(entries, cost, flags))
+def spell_report():
+    for school in range(6):
+        school_name = idata.get(school, 'schools')
+        res = []
+        for spellid, spell in new_spells.iteritems():
+            name = spell['FNAM']
+            accept = False
+            for e in spell['enams']:
+                if idata.get(idata.get(e['magic_effect'], 'magic_effects'), 'mgef_to_school') == school:
+                    accept = True
+            if not accept: continue
 
-    res['NAME'] = [PREFIX + name.lower() + NULL]
-    res['FNAM'] = [name + NULL]
-    res['SPDT'] = [struct.pack('<i', typeflag) + struct.pack('<i', cost) + struct.pack('<i', get_spell_flags(flags))]
-    res['instances'] = instances
-    res['flags'] = flags
-    res['cost'] = cost
-    res['schools'] = []
-    res['type'] = typeflag
-    for e in res['ENAM']:
-        effect = struct.unpack('<h', e[0:2])[0]
-        school = magic_effects.mgef_info[effect]
-        res['schools'].append(school)
-        
+            temp = ''
+            if 'dest' in school_name:
+                total_power = 0.0
+                for e in spell['enams']:
+                    if e['magic_effect'] in attack_types:
+                        #temp += str(e['duration'] * e['mag']) + ' '
+                        dur = e['duration']
+                        if dur == 0: dur = 1.0
+                        total_power += dur  * e['mag']
+                temp = '%0.2f' % total_power
+
+            s = spell['FNAM']+ ' ' + str(spell['cost'])
+            s = '%-25s' % s
+            s += ' | ' + '%-8s' % temp
+            res.append(s + '\n')
+
+        if not res: continue
+        f = open(os.path.abspath('reports/spellgen/' + idata.get(school, 'schools')), 'w+')
+        res = sorted(res, key= lambda x: float(x.split('|')[0].split()[-1]))
+        for r in res:
+            f.write(r)
+
+        f.close()
+
+spell_report()
+
+def print_spells():
+    res = ""
+    spellz = []
+    for n, s in new_spells.iteritems():
+        yes = False
+        temp = ""
+        temp += s['FNAM'] + " " + str(s['cost']) + '\n'
+        if s['cost'] == 0: continue
+        for e in s['ENAM']:
+            enam = schema.decode_subrecord(e, 'ENAM')
+            effname = idata.get(enam['magic_effect'], 'magic_effects')
+            if effname in attack_types:
+                yes = True
+            temp += idata.get(enam['magic_effect'], 'magic_effects') + ' ' 
+            temp += idata.get(enam['range'], 'ranges') + ' ' 
+            z = ['min', 'max', 'duration', 'area']
+            for zz in z:
+                temp += str(enam[zz]) + ' '
+            temp += '|| '
+            durr = enam['duration']
+            if durr == 0: durr = 1
+            avg_dmg = 0.5 * (enam['max'] + enam['min']) * durr
+
+            avg_dmg_MW = s['cost'] * 40.0 / 5.0 / 2.0
+            temp += str(avg_dmg) + ', ' + str(avg_dmg_MW) + ' || ' + str(avg_dmg/avg_dmg_MW) + ', ' + str(avg_dmg/avg_dmg_MW/0.66)
+            temp += '\n'
+        temp += '\n'
+        if yes: spellz.append((temp, s['cost']))
+    
+    spellz = sorted(spellz, key=lambda x:x[-1])
+    for HEYYY in spellz:
+        res += HEYYY[0]
 
 
     return res
 
-spells = {}
-for r in raw_data:
-    if (r != ['']):
-        s = process_spell(r)
-        spells[mwdata.get_subrecord('NAME', s)[0:-1]] = s
+f = open('spells_output.txt', 'w+')
+f.write(print_spells())
+f.close()
         
 
 
-def test1():
-    l = range(0, 10)
-    print l
-    for x in l:
-        print duration_efficiency(x)
-
-def test2():
-    return
-    points = range(1,150)
-    skill = map(lambda x: convert_skill_to_cost(x), points)
-    plt.plot(points, skill)
-    plt.show()
-    
-
+#print attack_types

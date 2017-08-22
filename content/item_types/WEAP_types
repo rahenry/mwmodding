@@ -1,0 +1,162 @@
+Longbow
+marksmanbow
+8.0 100 600
+1.0 1.0 35
+1 25 0 1 0 1
+
+Dagger
+shortbladeonehand
+3.0 20 450
+2.5 1.0 20
+4 5 4 5 5 5
+
+Spear
+speartwowide
+14.0 40 1000
+1.0 1.79999995232 50
+2 5 2 5 6 17
+
+Short Bow
+marksmanbow
+4.0 60 500
+1.0 1.0 20
+1 15 0 0 0 0
+
+Battle Axe
+axetwohand
+30.0 100 1800
+1.0 1.0 55
+1 36 1 27 1 4
+
+Wakizashi
+shortbladeonehand
+10.0 48 600
+2.25 1.0 45
+8 11 7 12 2 7
+
+Staff
+blunttwowide
+8.0 28 300
+1.75 1.79999995232 70
+2 7 3 7 1 5
+
+Longsword
+longbladeonehand
+20.0 80 900
+1.35000002384 1.0 60
+2 14 1 20 4 18
+
+Dai-katana
+longbladetwoclose
+20.0 240 2700
+1.35000002384 1.0 70
+1 27 1 23 1 14
+
+Claymore
+longbladetwoclose
+27.0 160 2100
+1.25 1.0 70
+1 27 1 23 1 16
+
+Shortsword
+shortbladeonehand
+8.0 40 750
+2.0 1.0 40
+5 12 5 12 7 12
+
+Halberd
+speartwowide
+14.0 80 1000
+1.0 1.79999995232 50
+1 4 1 4 5 23
+
+War Axe
+axeonehand
+24.0 60 1200
+1.25 1.0 50
+1 20 1 11 1 3
+
+Broadsword
+longbladeonehand
+12.0 60 900
+1.25 1.0 50
+4 14 4 14 2 14
+
+Saber
+longbladeonehand
+15.0 48 1050
+1.39999997616 1.0 55
+5 20 4 18 1 5
+
+Club
+bluntonehand
+12.0 20 600
+1.5 1.0 40
+4 5 3 4 3 4
+
+Katana
+longbladeonehand
+18.0 100 1800
+1.5 1.0 60
+3 20 1 18 1 6
+
+Dart
+marksmanthrown
+0.20000000298 6 150
+1.0 1.0 15
+2 5 0 1 0 1
+
+Mace
+bluntonehand
+15.0 48 1800
+1.29999995232 1.0 50
+3 14 3 14 1 2
+
+Bolt
+bolt
+0.10000000149 2 10
+1.0 1.0 20
+2 4 0 1 0 1
+
+Tanto
+shortbladeonehand
+4.0 28 600
+2.25 1.0 22
+5 11 5 11 6 11
+
+Crossbow
+marksmancrossbow
+10.0 160 550
+1.0 1.0 50
+20 20 0 1 0 1
+
+Throwing Star
+marksmanthrown
+0.10000000149 3 75
+1.0 1.0 15
+2 5 0 1 0 1
+
+hammer
+blunttwoclose
+32.0 80 3000
+1.0 1.5 55
+1 32 1 27 1 2
+
+Arrow
+arrow
+0.10000000149 2 10
+1.0 1.0 15
+1 4 0 0 0 0
+
+Axe
+axeonehand
+24.0 60 1200
+1.0 1.0 45
+1 18 1 10 1 2
+
+Throwing Knife
+marksmanthrown
+0.300000011921 4 150
+1.0 1.0 15
+1 4 0 1 0 1
+

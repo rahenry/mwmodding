@@ -1,11 +1,12 @@
 import struct
-import mwdata
 import spellgen
+import esm
 
 NULL = '\x00'
 NEWLINE = struct.pack('b', 13) + '\n'
 ENDIF = "endif" + NEWLINE
 ELSE = "else" + NEWLINE
+ELSEIF = "elseif" + NEWLINE
 PREFIX = "spellmod_"
 BUFF_INT_WEIGHT = 3.0
 BUFF_WILL_WEIGHT = 2.0
@@ -13,20 +14,25 @@ BUFF_PERS_WEIGHT = 5.0
 BUFF_LUCK_WEIGHT = 0.5
 BUFFS_AT_100 = 5.0
 ALCH_COOLDOWN = 30
+BOUND_COOLDOWN = 60
 POSITIVE_EFFECT_IDS = [40,64,65,66,8,4,117,79,82,80,84,83,81,6,9,10,41,43,68,95,94,96,90,91,93,98,99,97,92,74,77,75,78,76,42,3,11,67,1,59,0,2]
 
 buffs = {}
-for name, s in spellgen.spells.iteritems():
-    #print name
-    #print s["flags"]
-    if "buff" in s["flags"]:
+bound_effects = {}
+for name, s in spellgen.new_spells.iteritems():
+    if "buff" in s["flags"] or "bound" in s['flags']:
         buff = dict(s)
         buff['NAME'] = [buff['NAME'][0][:-1] + "_buffeffect" + NULL]
         buff['SPDT'] = [struct.pack('<i', 1) + buff['SPDT'][0][4:]]
         buff['spellid'] = [name]
-        buffs[name+"_buffeffect"] = buff
+        buff['flags'] = []
+        if "buff" in s["flags"]:
+            buffs[name+"_buffeffect"] = buff
+        else:
+            bound_effects[name+"_buffeffect"] = buff
 
-spellgen.spells.update(buffs)
+spellgen.new_spells.update(buffs)
+spellgen.new_spells.update(bound_effects)
 
 
 def ifplayer(func, arg):
@@ -73,8 +79,8 @@ def s_buff_init():
     pbp = PREFIX + "player_buff_points"
     s = ""
     for name, b in buffs.iteritems():
-        spellid = mwdata.get_subrecord("spellid", b)
-        buffid = mwdata.get_subrecord("NAME", b)[0:-1]
+        spellid = b['NAME']
+        buffid = b['NAME']
         buffpoints = b['buffpoints']
 
         s += ifplayer("getspelleffects", spellid)
@@ -94,8 +100,8 @@ def s_buff_dispel():
     # dispel all buffs on the player
     s = ""
     for name, b in buffs.iteritems():
-        spellid = mwdata.get_subrecord("spellid", b)
-        buffid = mwdata.get_subrecord("NAME", b)[0:-1]
+        spellid = b['NAME']
+        buffid = b['NAME']
         s += ifplayer("getspell", buffid)
         s += doplayer("removespell", buffid)
         s += ENDIF
@@ -118,8 +124,8 @@ def s_count_buffs():
     s = ""
     s += setvar(pcb, str(0))
     for name, b in buffs.iteritems():
-        spellid = mwdata.get_subrecord("spellid", b)
-        buffid = mwdata.get_subrecord("NAME", b)[0:-1]
+        spellid = b['NAME']
+        buffid = b['NAME']
         buffpoints = b['buffpoints']
 
         s += ifplayer("getspell", buffid)
@@ -151,6 +157,39 @@ def s_removepositiveeffects():
     s += "stopscript " + PREFIX + "s_removepositiveeffects" + NEWLINE
     return s
 
+def s_bound_items():
+    s = ""
+    s += "float cooldown" + NEWLINE
+    s += "float duration" + NEWLINE
+    s += setvar("cooldown", "cooldown - getsecondspassed")
+    s += setvar("duration", "duration - getsecondspassed")
+    s += "if cooldown >= 0" + NEWLINE
+    s += doplayer("addspell", PREFIX+"Bound Cooldown")
+    for name, spell in spellgen.new_spells.iteritems():
+        if 'bound' in spell['flags']:
+            s += ifplayer("getspelleffects", name)
+            s += '''messagebox "You can't use another bound for %.0fs!" cooldown''' + NEWLINE
+            s += doplayer("removespelleffects", name)
+            s += ENDIF
+    s += ELSE
+    s += doplayer("removespell", PREFIX+"Bound Cooldown")
+    for name, spell in spellgen.new_spells.iteritems():
+        if 'bound' in spell['flags']:
+            buffid = name.strip(NULL) + "_buffeffect"
+            s += ifplayer("getspelleffects", name)
+            s += doplayer("removespelleffects", name)
+            s += doplayer("addspell", buffid)
+            s += setvar("cooldown", str(BOUND_COOLDOWN))
+            s += setvar("duration", str(spell['duration']))
+            s += ENDIF
+    s += ENDIF
+    s += "if duration < 0" + NEWLINE
+    for name, spell in spellgen.new_spells.iteritems():
+        if 'bound' in spell['flags']:
+            buffid = name.strip(NULL) + "_buffeffect"
+            s += doplayer("removespell", buffid)
+    s += ENDIF
+    return s
 
 def s_alch_cooldown():
     s = ""
@@ -158,6 +197,9 @@ def s_alch_cooldown():
     s += "float trigger" + NEWLINE
     s += setvar("cooldown", "cooldown - getsecondspassed")
     s += setvar("trigger", "trigger - getsecondspassed")
+    s += "if cooldown < 0" + NEWLINE
+    s += doplayer("removespell", PREFIX+"Alchemy Cooldown")
+    s += ENDIF
     s += "if trigger > 0" + NEWLINE
     s += "return" + NEWLINE
     s += ENDIF
@@ -172,9 +214,8 @@ def s_alch_cooldown():
     s += ENDIF
 
     s += setvar("cooldown", str(ALCH_COOLDOWN))
-    s += 'player->cast "' + PREFIX + 'Alchemy Cooldown" player' + NEWLINE
+    s += doplayer("addspell", PREFIX+"Alchemy Cooldown")
     s += ENDIF
-    print s
     return s
 
 
@@ -188,6 +229,7 @@ script_list = {
     "s_count_buffs" : s_count_buffs,
     "s_alch_cooldown" : s_alch_cooldown,
     "s_removepositiveeffects" : s_removepositiveeffects,
+    "s_bound_items" : s_bound_items,
     }
 
 start_script_list = [
@@ -195,6 +237,7 @@ start_script_list = [
         "s_catch_buff_dispel",
         "s_count_buffs",
         "s_alch_cooldown",
+        "s_bound_items",
         ]
 
 globdata = {
@@ -209,7 +252,7 @@ for name, f in script_list.iteritems():
     scripts[name] = pack_script(script, name)
 
 start_scripts = {}
-mwdata.record_type_orderings['SSCR'] = ['NAME', 'DATA']
+esm.record_subrecord_orderings['SSCR'] = ['NAME', 'DATA']
 for s in start_script_list:
     res = {}
     res['NAME'] = [PREFIX + s + NULL]

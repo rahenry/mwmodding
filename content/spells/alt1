@@ -1,0 +1,21 @@
+Bound 20s
+flags buff1
+jump 3
+
+Water Breathing 50s
+flags buff1
+water_breathing
+
+Verrugo's Sea-plodder 30s
+flags buff1
+water_walking
+burden 100
+
+Streamline 22s
+flags buff1
+swim 25
+
+Float 55s
+flags buff2
+levitate 1
+

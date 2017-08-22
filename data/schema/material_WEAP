@@ -1,0 +1,10 @@
+float weight
+long value
+short durability
+float speed
+float reach
+short enchant
+float power
+longflag weapon_flags
+
+

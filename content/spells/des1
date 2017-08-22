@@ -1,0 +1,43 @@
+Firebite 15s
+fire! 1.0 0.2 1 0
+
+Spark 16s
+shock! r 1.0 1.0 0 0
+
+Spider Bite 22s
+poison! 1.0 0 8 0
+
+Flare 21s
+fire! 1.0 0.2 2 8
+
+Icy Current 35s
+ice! 1.0 0.0 6 6
+
+Abugen's Razor 25s
+shock! 0.8 1.0 0 0
+fire! 0.15 0.0 2 6
+
+Skullblaze 29s
+shock! r 1.05 1.0 0 0
+blind s 50 2
+blind s 50 1
+
+Frostbite 18s
+frost! r 0.9 0.15 4 0
+burden r 25 75 4 0
+
+Breath of Decay 38s
+damagehealth! m 1.1 0 8 15
+damagefatigue s 5 15
+
+Cruel Toxin 27s
+poison! m 1.1 0 9 6
+drainattribute strength t 25 9
+drainattribute speed t 25 9
+poison! s 0.3 9
+drainattribute strength s 25 9
+drainattribute speed s 25 9
+
+firebite_test 6
+fire!
+

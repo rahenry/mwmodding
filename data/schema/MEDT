@@ -1,0 +1,13 @@
+long school
+float cost
+longflag spell_flags
+long red
+long blue
+long green
+float speed
+float size
+float sizecap
+
+school
+cost
+flags

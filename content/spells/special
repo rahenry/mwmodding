@@ -1,0 +1,10 @@
+Dispel Buffs 0
+shield 1 1 1 1
+
+Alchemy Cooldown
+flags special ability
+command_human 1 1 30
+
+Bound Cooldown
+flags special ability
+command_human 1 1 60

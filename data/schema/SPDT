@@ -1,0 +1,9 @@
+long spell_type
+long cost
+long spell_flags
+
+spell_type
+cost
+
+spell_type
+

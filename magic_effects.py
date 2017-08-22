@@ -1,64 +1,17 @@
-import struct 
-import index_data
-import mwdata
-import colour_converter
+from parameters import *
+import utility as ut
+import index_data as idata
+import esm
+import struct
+import schema
 
-NULL = '\x00'
 
-def get_school(mgef):
-    medt = mgef['MEDT'][0]
-    return struct.unpack('<i', medt[0:4])[0]
+mgefs = {}
+idata.index_data['mgef_to_school'] = {}
+for name, mgef in esm.records_original['MGEF'].iteritems():
+    mgefs[name] = mgef
+    mgefs[name].update(schema.decode_subrecord(mgefs[name]['MEDT'], 'MEDT'))
+    index = idata.get(name, 'magic_effects')
+    idata.index_data['mgef_to_school'][index] = mgefs[name]['school']
 
-mgef_info = {}
-def process_mgefs(records):
-    schools = index_data.get_data('schools')
-    reference_icons = {}
-    for school in schools:
-        for ind, d in records['MGEF'].iteritems():
-            s = mwdata.read_long(d, 'MEDT')
-            if (s == schools[school]):
-                reference_icons[school] = mwdata.read_icon_path(d)
-                break
 
-    mgef_data = mwdata.read_newline_separated("input_data/magic_effects")
-    mgef_new_records = {}
-    for d in mgef_data:
-        d = map(lambda x: x.lower(), d)
-        name = ""
-        for mgef in index_data.get_data("magic_effects"):
-            if mgef in d:
-                name = mgef
-                break
-        if (name == ""): continue
-
-        school = ""
-        for s in schools:
-            if s in d:
-                school = s
-                break
-
-        for ind, mgef in records['MGEF'].iteritems():
-            INDX = mwdata.read_long(mgef, 'INDX')
-            u = index_data.get_index(name, 'magic_effects')
-            if (INDX == index_data.get_index(name, 'magic_effects')):
-                s = mwdata.read_long(mgef, 'MEDT')
-
-                if (s != index_data.get_index(school, 'schools')):
-                    # we've redefined this effect's school!
-                    output_file = "icons/" + name.lower() + ".dds"
-                    mgef_new_records[ind] = dict(mgef)
-                    mgef_new_records[ind]['ITEX'] = [mwdata.encode_path(output_file)]
-
-                    source_file = mwdata.read_icon_path(mgef)
-                    objective_file = reference_icons[school]
-                    colour_converter.recolour(source_file, objective_file, output_file)
-
-                    source_file = source_file.replace("tx_", "b_tx_")
-                    objective_file = objective_file.replace("tx_", "b_tx_")
-                    output_file = "icons/b_" + name.lower() + ".dds"
-                    colour_converter.recolour(source_file, objective_file, output_file)
-
-    for ind, mgef in records['MGEF'].iteritems():
-        mgef_info[index_data.get_index(ind, "magic_effects")] = get_school(mgef)
-    for ind, mgef in mgef_new_records.iteritems():
-        mgef_info[index_data.get_index(ind, "magic_effects")] = get_school(mgef)

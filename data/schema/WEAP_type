@@ -1,0 +1,14 @@
+short weapon_class
+float weight
+long value
+short durability
+float speed
+float reach
+short enchant
+byte c1
+byte c2
+byte s1
+byte s2
+byte t1
+byte t2
+

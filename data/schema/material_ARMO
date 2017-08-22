@@ -1,0 +1,6 @@
+float weight
+long value
+long durability
+long enchant
+long armour
+

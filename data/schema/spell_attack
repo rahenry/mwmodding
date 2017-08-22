@@ -1,0 +1,5 @@
+float cost
+float touch_efficiency
+float target_efficiency
+float area_efficiency
+float duration_efficiency

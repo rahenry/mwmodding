@@ -1,0 +1,8 @@
+short magic_effect
+byte skill
+byte attribute
+long range
+long area
+long duration
+long min
+long max
