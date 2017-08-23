@@ -1,0 +1,8 @@
+short level
+byte disposition
+byte factionid
+byte rank
+byte unknown1
+byte unknown2
+byte unknown3
+long gold

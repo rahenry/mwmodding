@@ -1,0 +1,30 @@
+Verrugo's Sea-plodder 30s
+flags buff1
+water_walking
+burden 100
+
+Buoyancy 15s
+flags buff1
+jump 1
+swift swim 10
+feather 10
+slowfall 1
+
+Veil of Mist 22s
+flags buff1
+sanc 10
+chameleon 10
+shield 10
+
+Heartflame 18s
+flags buff1
+fortifyattack 15
+resistfire 10
+resistnormal 10
+damagefatigue 1
+
+Regeneration I 29s
+flags buff1
+restorehealth 1
+drainhealth 30
+damagefatigue 1

@@ -1,7 +1,8 @@
 import os 
 import math
 
-SPELL_ATTACK_BASE_COST = 3.0 / 10.0
+# spellgen
+SPELL_ATTACK_BASE_COST = 4.0 / 10.0
 DE_3 = 1.13
 DE_10 = 1.30
 DURATION_EFFICIENCY_FACTOR = 100.0

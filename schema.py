@@ -72,7 +72,16 @@ for s_file in scheme_files:
 def decode_subrecord(subr, t):
     if t not in scheme_data: return None
     res = {}
-    raw_data = struct.unpack('<' + scheme_data[t]['record_unpack_string'], subr)
+    try:
+        raw_data = struct.unpack('<' + scheme_data[t]['record_unpack_string'], subr)
+    except struct.error:
+        for s in scheme_data:
+            if t in s:
+                try: 
+                    t = s
+                    raw_data = struct.unpack('<' + scheme_data[t]['record_unpack_string'], subr)
+                except struct.error: 
+                    continue
     index = 0
     for key in scheme_data[t]['scheme']:
         key_type = scheme_data[t]['key_types']
@@ -80,9 +89,32 @@ def decode_subrecord(subr, t):
         index += 1
     return res
 
+def decode_all_subrecords(rec):
+    new_data = {}
+    for subr_type, subr in rec.iteritems():
+        if subr_type in scheme_data:
+            new_data.update(decode_subrecord(subr, subr_type))
+    rec.update(new_data)
+
+def encode_all_subrecords(rec):
+    new_data = {}
+    for subr_type, subr in rec.iteritems():
+        if subr_type in scheme_data:
+            new_data[subr_type] = encode_subrecord(rec, subr_type)
+    rec.update(new_data)
+
+def find_scheme(rec):
+    for sname, scheme in scheme_data.iteritems():
+        for s in scheme['scheme']:
+            if s not in rec:
+                continue
+            return sname
+    return False
+        
 def encode_subrecord(rec, t):
     if t not in scheme_data: return None
     res = ""
+
     for s in scheme_data[t]['scheme']:
         data_type = scheme_data_mappings[scheme_data[t]['key_types'][s]]
         try:
@@ -90,6 +122,8 @@ def encode_subrecord(rec, t):
         except struct.error:
             z = idata.get(rec[s], s+'s')
             res += struct.pack('<'+data_type, z)
+        except KeyError:
+            return encode_subrecord(rec, find_scheme(rec))
     return res
             
 def encode_plaintext(rec, t):

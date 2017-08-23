@@ -6,12 +6,14 @@ import esm
 import struct
 import os
 import schema
+import outputs
 
 input_dir = os.path.abspath("content/spells")
 input_files = ut.get_file_list(input_dir)
 
 attack_types = {}
 new_spells = {}
+buffs = {}
 
 def skill_to_will(s):
     pts = ((5., 40.), (100., 105.))
@@ -184,8 +186,15 @@ def read_spell_plaintext(data):
         res['enams'].append(new_enam)
 
     res['SPDT'] = schema.encode_subrecord(res, 'SPDT')
+
     return res
     
+def make_buff_effect(spell):
+    res = dict(spell)
+    res['spell_type'] = idata.get('ability', 'spell_types')
+    res['SPDT'] = schema.encode_subrecord(res, 'SPDT')
+    res['NAME'] += '_buffeffect'
+    return res
 
 read_attack_types()
 for f in input_files:
@@ -193,8 +202,56 @@ for f in input_files:
     for d in data:
         new_spell = read_spell_plaintext(d)
         new_spells[new_spell['NAME']] = new_spell
+        for flag in new_spell['flags']:
+            if 'buff' in flag:
+                d = int(flag[4:])
+                new_spell['buff_points'] = d
+                buff_effect = make_buff_effect(new_spell)
+                buffs[new_spell['NAME']+'_buffeffect'] = buff_effect
+
+tier_cutoffs = [30, 50, 70, 90, 110]
+tier_cutoffs = map(skill_to_cost, tier_cutoffs)
+def get_tier(spell):
+    index = 1
+    for t in tier_cutoffs:
+        if spell['cost'] < t:
+            return index
+        index += 1
+    return index
 
 def spell_report():
+    attack_type_data = {}
+    for a in attack_types:
+        attack_type_data[a] = {}
+        attack_type_data[a]['spells'] = []
+    for a in attack_types:
+        for spellid, spell in new_spells.iteritems():
+            for e in spell['enams']:
+                if e['magic_effect'] == a:
+                    attack_type_data[a]['spells'].append(spell)
+                    continue
+    for a in attack_types:
+        for i in range(1, 6):
+            attack_type_data[a]['T' + str(i)] = 0
+        for spell in attack_type_data[a]['spells']:
+            tier = get_tier(spell)
+            attack_type_data[a]['T'+str(tier)] += 1
+
+    f = open(os.path.abspath('reports/spellgen/attack_types'), 'w+')
+    f.write('%-15s ' % '')
+    for i in range(1, 6):
+        f.write('%5s ' % ('T'+str(i)))
+    f.write('\n')
+    f.write('\n')
+
+    for a in attack_types:
+        f.write('%-15s ' % a)
+        for i in range(1, 6):
+            f.write('%5i ' % attack_type_data[a]['T'+str(i)])
+        f.write('\n')
+    f.close()
+
+
     for school in range(6):
         school_name = idata.get(school, 'schools')
         res = []
@@ -206,20 +263,22 @@ def spell_report():
                     accept = True
             if not accept: continue
 
+            s = spell['FNAM']+ ' ' + str(spell['cost'])
+            s = '%-25s' % s
             temp = ''
             if 'dest' in school_name:
                 total_power = 0.0
                 for e in spell['enams']:
+                    if e['range'] == 'self': continue
                     if e['magic_effect'] in attack_types:
                         #temp += str(e['duration'] * e['mag']) + ' '
                         dur = e['duration']
                         if dur == 0: dur = 1.0
                         total_power += dur  * e['mag']
-                temp = '%0.2f' % total_power
+                avg_dmg_MW = spell['cost'] * 40.0 / 5.0 / 2.0 * 0.66
+                s += ' | ' + '%-8s' % ('%0.2f' % total_power)
+                s += ' %-8s' % ('%0.2f' % (total_power/avg_dmg_MW))
 
-            s = spell['FNAM']+ ' ' + str(spell['cost'])
-            s = '%-25s' % s
-            s += ' | ' + '%-8s' % temp
             res.append(s + '\n')
 
         if not res: continue
@@ -227,51 +286,19 @@ def spell_report():
         res = sorted(res, key= lambda x: float(x.split('|')[0].split()[-1]))
         for r in res:
             f.write(r)
-
         f.close()
-
-spell_report()
-
-def print_spells():
-    res = ""
-    spellz = []
-    for n, s in new_spells.iteritems():
-        yes = False
-        temp = ""
-        temp += s['FNAM'] + " " + str(s['cost']) + '\n'
-        if s['cost'] == 0: continue
-        for e in s['ENAM']:
-            enam = schema.decode_subrecord(e, 'ENAM')
-            effname = idata.get(enam['magic_effect'], 'magic_effects')
-            if effname in attack_types:
-                yes = True
-            temp += idata.get(enam['magic_effect'], 'magic_effects') + ' ' 
-            temp += idata.get(enam['range'], 'ranges') + ' ' 
-            z = ['min', 'max', 'duration', 'area']
-            for zz in z:
-                temp += str(enam[zz]) + ' '
-            temp += '|| '
-            durr = enam['duration']
-            if durr == 0: durr = 1
-            avg_dmg = 0.5 * (enam['max'] + enam['min']) * durr
-
-            avg_dmg_MW = s['cost'] * 40.0 / 5.0 / 2.0
-            temp += str(avg_dmg) + ', ' + str(avg_dmg_MW) + ' || ' + str(avg_dmg/avg_dmg_MW) + ', ' + str(avg_dmg/avg_dmg_MW/0.66)
-            temp += '\n'
-        temp += '\n'
-        if yes: spellz.append((temp, s['cost']))
-    
-    spellz = sorted(spellz, key=lambda x:x[-1])
-    for HEYYY in spellz:
-        res += HEYYY[0]
-
-
     return res
 
-f = open('spells_output.txt', 'w+')
-f.write(print_spells())
-f.close()
+spell_report()
+output_names = ['spellmod', 'everything']
+outputs.update({'SPEL':new_spells}, output_names)
+outputs.update({'SPEL':buffs}, output_names)
+
+for s in outputs.outputs['spellmod']['data']['SPEL']:
+    print s
         
+#for s, x in new_spells.iteritems():
+    #print s, len(x['SPDT'])
 
 
 #print attack_types
