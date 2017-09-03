@@ -184,5 +184,6 @@ for name, npc in new_spell_vendors.iteritems():
 
 
 output_names = ['spellmod', 'everything']
+outputs.update({'NPC_':new_npcs}, output_names)
 outputs.update({'NPC_':new_spell_vendors}, output_names)
 
