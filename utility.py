@@ -16,6 +16,14 @@ def get_file_list(base_path):
         res.append(path)
     return res
 
+def get_dir_list(base_path):
+    res = []
+    for fname in os.listdir(base_path):
+        path = os.path.join(base_path, fname)
+        if not os.path.isdir(path): continue
+        res.append(path)
+    return res
+
 def reductions(x):
     for r in REDUCTIONS:
         x = r(x)
@@ -40,3 +48,8 @@ def read_newline_sep(file_name):
             data.remove(x)
             continue
     return data
+
+def update_non_existing_inplace(original_dict, to_add):
+    for key in to_add.iterkeys():
+        if key not in original_dict:
+            original_dict[key] = to_add[key]

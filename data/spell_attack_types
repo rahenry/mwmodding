@@ -19,3 +19,5 @@ drainhealth
 damagehealth
 1.0 0.8 0.8 0.8 0.8
 
+restorehealth
+1.0 1.0 1.0 1.0 1.0

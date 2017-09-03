@@ -1,3 +1,6 @@
+# comment (:
+# startscript
+
 pcb = PREFIX + "player_current_buffs"
 pbp = PREFIX + "player_buff_points"
 s = ""

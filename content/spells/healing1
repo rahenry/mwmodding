@@ -1,0 +1,15 @@
+Flash of Light 15s
+restorehealth! s 1.1
+light s 25 25 2 0
+light s 25 25 1 0
+
+Rejuvenate 21s
+restorehealth! s 1.0 0.5 0 4
+damagefatigue s 5 5 0 4
+
+Hearth Heal 22s
+restorehealth! s 0.9 1.0 0 2
+
+Resurgence 29s
+restorehealth! s 0.8 0.0 0 3
+restorefatigue s 8 10 0 3

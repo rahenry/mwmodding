@@ -72,6 +72,7 @@ for s_file in scheme_files:
 def decode_subrecord(subr, t):
     if t not in scheme_data: return None
     res = {}
+    raw_data = ''
     try:
         raw_data = struct.unpack('<' + scheme_data[t]['record_unpack_string'], subr)
     except struct.error:

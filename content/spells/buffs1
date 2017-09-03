@@ -28,3 +28,32 @@ flags buff1
 restorehealth 1
 drainhealth 30
 damagefatigue 1
+
+Vital Sight 21s
+flags buff1
+detectanimal 30
+fortifyhealth 30
+restorefatigue 1
+
+Wind Blessing 26s
+flags buff1
+feather 40
+fortifyattribute speed 25
+drainattribute endurance 25
+drainattribute strength 25
+
+Aqualung 24s
+flags buff1
+waterbreathing
+burden 100
+
+Hypersensitise 12s
+flags buff0
+nighteye 15
+blind 15
+
+Starlight 3
+flags buff0
+light 8
+
+

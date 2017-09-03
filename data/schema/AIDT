@@ -1,0 +1,9 @@
+byte hello
+byte unknown1
+byte fight
+byte flee
+byte alarm
+byte unknown2
+byte unknown3
+byte unknown4
+long tradeflags 

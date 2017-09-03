@@ -1,6 +1,17 @@
 import os 
 import math
 
+RECORD_TYPES_OF_INTEREST = ['TES3', 'MGEF', 'SPEL', 'SCPT', 'RACE', 'NPC_', 'GLOB', 'ARMO', 'WEAP', 'ENCH', 'CLAS', 'RACE', 'SKIL']
+
+# distributing spells to npcs
+NPC_MIN_SPELLS = 8
+NPC_MAX_SPELLS = 15
+SPELL_MIN_OCCURRENCES = 3
+SPELL_MAX_OCCURRENCES = 10
+EXCLUDED_NPCS = ['todd', 'used clutter salesman']
+
+
+
 # spellgen
 SPELL_ATTACK_BASE_COST = 4.0 / 10.0
 DE_3 = 1.13
@@ -36,7 +47,6 @@ REDUCTIONS = [
         lambda x: x.lower(),
         ]
 MW_DATA_PATH = os.path.abspath(os.path.expanduser('~/.local/share/openmw/data'))
-RECORD_TYPES_OF_INTEREST = ['TES3', 'MGEF', 'SPEL', 'SCPT', 'RACE', 'NPC_', 'GLOB', 'ARMO', 'WEAP', 'ENCH'] 
 AUTHOR_NAME = 'kuju'
 MOD_DESCRIPTION = 'mod123'
 DATA_DIR = os.path.abspath('data')
@@ -46,3 +56,8 @@ INSTANCES_MIN_BASE = 5
 INSTANCES_MAX_BASE = 1000
 SDEV_EFFICIENCY_MAX = 1.1
 SUCCESS_THRESHHOLD = 0.5
+
+# npcs
+# spells
+NPC_CAST_THRESHHOLD = 0.9
+NPC_SELL_CAST_THRESHHOLD = 0.4

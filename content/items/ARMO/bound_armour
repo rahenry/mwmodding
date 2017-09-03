@@ -1,0 +1,19 @@
+Bound Boots of Speed
+copy iron boots
+id bound_boots
+enam en_bound_boots
+
+Bound Aegis of Storms
+copy iron_shield
+id bound_shield
+enam en_bound_shield
+
+Bound Indomitable Cuirass
+copy iron_cuirass
+id bound_cuirass
+enam en_bound_cuirass
+
+Bound Majestic Diadem
+copy iron_helmet
+id bound_helm
+enam en_bound_helm

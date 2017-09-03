@@ -1,0 +1,31 @@
+bound_dagger
+1 0 1000 0
+fire m 1 2 0 0
+
+bound_staff
+1 1 1000 0
+frost m 1 5 3 3
+
+bound_boots
+3 0 0 0
+fortifyattribute speed s 50
+fortifyskill athletics s 25
+
+bound_cuirass
+3 0 0 0
+shield 100
+resistnormalweapons 75
+absorb 75
+burden 500
+restorehealth 10
+
+bound_shield
+3 0 0 0
+fireshield 50
+frostshield 50
+lightningshield 50
+
+bound_helm
+3 0 0 0
+jump 1
+

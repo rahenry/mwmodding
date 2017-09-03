@@ -1,0 +1,40 @@
+locktest 1
+open m 100
+lock m 99
+
+Knock 2
+open m 10
+
+Unhinge 5
+open m 20
+
+Allagria's Aneurysm 28s
+open m 40
+damageattribute intelligence s 1
+
+Ondusi's Open Door 25s
+open m 30
+
+Urkharte's Unhinging 57s
+open m 66
+
+Luckless Locksplitter 70s
+open m 86
+damageattribute luck s 1
+
+Flamekey 48s
+open m 62
+fire s 15 15 5 30
+
+Ondusi's Inevitable Ingress 110s
+open m 100
+
+Electrified Locksplitter 91s
+open m 99
+shock s 50 50 5 0
+
+Urkharte's Unreasoned Opening 102s
+open m 100
+damageattribute intelligence s 5
+damageattribute willpower s 5
+

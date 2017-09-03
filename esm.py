@@ -19,9 +19,10 @@ for f in ut.get_file_list(MW_DATA_PATH):
     if '.esm' in f: data_files.append(f)
 #data_files = ["test.esm"]
 
+
 def make_id(rec, rtype):
     for t in id_encoding_types:
-        if t in rec:
+        if t in rec and not isinstance(rec[t], list):
             return rec[t].strip(NULL)
     if 'INDX' in rec:
         data_type = ''
@@ -48,6 +49,7 @@ def extract_record(d, rtype):
         if not subr_name in subrecord_order: subrecord_order.append(subr_name)
         s = struct.unpack('<i', d[i+4:i+8])[0]
         subr_data = d[i+8:i+8+s]
+
 
         # if we're on an armour record and an INDX subrecord, see if there's a BNAM next and if so, just add it to the INDX data
         if (rtype == 'ARMO' and subr_name == 'INDX'):

@@ -1,0 +1,23 @@
+Bound Dagger 3
+flags bound
+bound_dagger 1 1 12
+
+Bound Staff 3
+flags bound
+bound_mace 1 1 12
+
+Conjure Boots of Speed 42s
+flags bound
+bound_boots 1 1 8
+
+Conjure Indomitable Cuirass 66s
+flags bound
+bound_cuirass 1 1 6
+
+Conjure Aegis of Storms 71s
+flags bound
+bound_shield 1 1 10
+
+Conjure Majestic Diadem 53s
+flags bound
+bound_helm 1 1 20

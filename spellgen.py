@@ -14,6 +14,7 @@ input_files = ut.get_file_list(input_dir)
 attack_types = {}
 new_spells = {}
 buffs = {}
+bounds = {}
 
 def skill_to_will(s):
     pts = ((5., 40.), (100., 105.))
@@ -87,9 +88,10 @@ def build_ENAM(d, spell_rec, autobuild):
     d = d.split()
 
     res['skill'] = -1
-    res['name'] = spell_rec['FNAM']
     res['attribute'] = -1
-    res['cost'] = spell_rec['cost']
+    if spell_rec:
+        res['name'] = spell_rec['FNAM']
+        res['cost'] = spell_rec['cost']
 
     params = ['range', 'magic_effect', 'skill', 'attribute']
     number_data = []
@@ -105,6 +107,11 @@ def build_ENAM(d, spell_rec, autobuild):
                     res[p] = val
                     break
                     
+    try:
+        res['magic_effect']
+    except KeyError:
+        print "magic_effect key error in " + spell_rec['FNAM']
+
     if 'range' not in res:
         if res['magic_effect'] in attack_types:
             res['range'] = 1 #touch
@@ -115,20 +122,22 @@ def build_ENAM(d, spell_rec, autobuild):
         res.update(schema.decode_plaintext(number_data, 'ENAM_subdata_autobuild'))
         if 'efficiency' not in res: res['efficiency'] = 1.0
         if 'variability' not in res: res['variability'] = 0.0
-        if not 'duration' in res: res['duration'] = 1
-        if not 'area' in res: res['area'] = 1
+        if not 'duration' in res: res['duration'] = 0
+        if not 'area' in res: res['area'] = 0
         calc_mag(res)
     else:
         res.update(schema.decode_plaintext(number_data, 'ENAM_subdata'))
 
     if not 'min' in res: res['min'] = 1
     if not 'max' in res: res['max'] = res['min']
-    if not 'duration' in res: res['duration'] = 1
-    if not 'area' in res: res['area'] = 1
+    if not 'duration' in res: res['duration'] = 0
+    if not 'area' in res: res['area'] = 0
 
-    if 'buff' in spell_rec['flags']:
-        res['duration'] = 0
-    spell_rec['duration'] = res['duration']
+    if spell_rec:
+        for flag in spell_rec['flags']:
+            if 'buff' in flag:
+                res['duration'] = 1
+        spell_rec['duration'] = res['duration']
 
     res['mag'] = 0.5 * (res['min'] + res['max'])
     res['school'] = idata.get(idata.get(res['magic_effect'], 'magic_effects'), 'mgef_to_school')
@@ -160,16 +169,18 @@ def read_spell_plaintext(data):
     res['flags'] = []
     res['schools'] = []
 
+    prefix = ''
 
     for d in data[1:]:
         if 'flags' in d:
             s = d.split()
+
             s.remove('flags')
             res['flags'] += s
             data.remove(d)
 
     res['spell_type'] = 0
-    for f in flags:
+    for f in res['flags']:
         spell_type = idata.find_key(f, 'spell_types')
         if spell_type: res['spell_type'] = spell_type
     res['spell_flags'] = make_spell_flags(res['flags'])
@@ -189,6 +200,13 @@ def read_spell_plaintext(data):
 
     return res
     
+def make_bound_effect(spell):
+    res = dict(spell)
+    res['spell_type'] = idata.get('ability', 'spell_types')
+    res['SPDT'] = schema.encode_subrecord(res, 'SPDT')
+    res['NAME'] += '_boundeffect'
+    return res
+
 def make_buff_effect(spell):
     res = dict(spell)
     res['spell_type'] = idata.get('ability', 'spell_types')
@@ -208,6 +226,9 @@ for f in input_files:
                 new_spell['buff_points'] = d
                 buff_effect = make_buff_effect(new_spell)
                 buffs[new_spell['NAME']+'_buffeffect'] = buff_effect
+            if 'bound' in flag:
+                bound_effect = make_bound_effect(new_spell)
+                bounds[new_spell['NAME']+'_boundeffect'] = bound_effect
 
 tier_cutoffs = [30, 50, 70, 90, 110]
 tier_cutoffs = map(skill_to_cost, tier_cutoffs)
@@ -293,10 +314,8 @@ spell_report()
 output_names = ['spellmod', 'everything']
 outputs.update({'SPEL':new_spells}, output_names)
 outputs.update({'SPEL':buffs}, output_names)
+outputs.update({'SPEL':bounds}, output_names)
 
-for s in outputs.outputs['spellmod']['data']['SPEL']:
-    print s
-        
 #for s, x in new_spells.iteritems():
     #print s, len(x['SPDT'])
 

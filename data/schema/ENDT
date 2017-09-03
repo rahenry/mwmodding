@@ -1,0 +1,4 @@
+long ench_type
+long ench_cost
+long ench_charge
+long ench_autocalc

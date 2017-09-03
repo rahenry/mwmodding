@@ -1,0 +1,26 @@
+Almsivi Intervention 10
+flags temple
+almsivi
+
+Divine Intervention 10
+flags cult
+divine
+
+Mark 20
+mark
+
+Recall 20
+recall
+
+Soulgrasp 28s
+soultrap m 1 1 5 0
+damagefatigue s 50 100 1 0
+
+Soultrap 48s
+soultrap m 1 1 10 0
+
+Soulwind 82s
+soultrap t 1 1 60 60
+
+Gulp 5
+waterbreathing s 1

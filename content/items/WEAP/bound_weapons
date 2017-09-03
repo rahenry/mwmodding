@@ -1,0 +1,9 @@
+Bound Dagger
+id bound_dagger
+type glass dagger
+enam en_bound_dagger
+
+Bound Staff
+id bound_mace
+type steel staff
+enam en_bound_staff
