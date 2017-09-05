@@ -41,3 +41,15 @@ drainattribute speed s 25 9
 firebite_test 6
 fire!
 
+Frostbite 15s
+frost! 1.0 0.2 1 0
+
+Frigerate 19s
+frost! r 1.0 0.0 4 10
+burden r 100 100 1 10
+
+Rimegrasp 32s
+frost! t 1.08 0.0 3 8
+drainattribute agility s 25 25 6
+drainattribute endurance s 25 25 6
+

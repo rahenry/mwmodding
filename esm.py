@@ -12,10 +12,12 @@ id_encoding_types = ['NAME', 'SCHD']
 null_terminated_types = ['NAME', 'FNAM']
 
 records_original = {}
+NPC_special_ordering = ['NAME', 'FNAM', 'MODL', 'RNAM', 'CNAM', 'ANAM', 'BNAM', 'KNAM', 'NPDT', 'SCRI', 'FLAG', 'NPCO', 'NPCS', 'AI_W', 'AI_T', 'AI_F', 'AI_E', 'CNDT', 'AIDT', 'DODT', 'DNAM', 'XSCL']
 record_subrecord_orderings = {}
 
 data_files = []
 for f in ut.get_file_list(MW_DATA_PATH):
+    if not 'orrow' in f: continue
     if '.esm' in f: data_files.append(f)
 #data_files = ["test.esm"]
 
@@ -150,6 +152,7 @@ def write_esp(records, file_name):
 
 extract_records()
 
+record_subrecord_orderings['NPC_'] = NPC_special_ordering
 #test_recs = dict(records_original)
 #test_recs['NPC_'] = {}
 #zzz = ['arrille']

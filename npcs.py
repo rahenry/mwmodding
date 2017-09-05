@@ -78,44 +78,51 @@ npcs_base = {}
 new_npcs = {}
 last = ""
 for name, npc in esm.records_original['NPC_'].iteritems():
-    if 'player' not in name:
-        npcs_base[name] = dict(npc)
-        new_npc = npcs_base[name]
-        schema.decode_all_subrecords(npcs_base[name])
-        cl = esm.records_original['CLAS'][npc['CNAM'].strip(NULL)]
-        new_npc.update(schema.decode_subrecord(cl['CLDT'], 'CLDT'))
-        new_npc['majors'] = []
-        new_npc['minors'] = []
-        for i in range(1,6):
-            exec('''new_npc['majors'].append(new_npc['major'+str(i)])''')
-            exec('''new_npc['minors'].append(new_npc['minor'+str(i)])''')
-        
-        race = races.race_data[npc['RNAM'].strip(NULL)]
-        new_npc.update(schema.decode_subrecord(race['RADT'], 'RADT'))
-        new_npc['race_data'] = {}
-        racename = race['FNAM']
-        for i in range(1,8):
-            exec('''skillid = new_npc['skill'+str(i)]''')
-            exec('''skillbonus = new_npc['skillbonus'+str(i)]''')
-            skillname = idata.get(skillid, 'skills')
-            new_npc['race_data'][skillname] = int(skillbonus)
+    if 'player' in name: continue
+    npcs_base[name] = dict(npc)
+    new_npc = npcs_base[name]
+    schema.decode_all_subrecords(new_npc)
 
-        new_npc['npcflags'] = struct.unpack('<i', new_npc['FLAG'])[0]
+    #if new_npc['level'] == 7: continue
+    #if new_npc['level'] == 17: continue
+    #if 'SCRI' in new_npc: print lev
+    #print new_npc['level']
 
-        new_npc['sex'] = 'm'
-        if new_npc['npcflags'] % 2 == 1:
-            new_npc['sex'] = 'f'
+    cl = esm.records_original['CLAS'][npc['CNAM'].strip(NULL)]
+    new_npc.update(schema.decode_subrecord(cl['CLDT'], 'CLDT'))
+    new_npc['majors'] = []
+    new_npc['minors'] = []
+    for i in range(1,6):
+        exec('''new_npc['majors'].append(new_npc['major'+str(i)])''')
+        exec('''new_npc['minors'].append(new_npc['minor'+str(i)])''')
+    
+    race = races.race_data[npc['RNAM'].strip(NULL)]
+    new_npc.update(schema.decode_subrecord(race['RADT'], 'RADT'))
+    new_npc['race_data'] = {}
+    racename = race['FNAM']
+    for i in range(1,8):
+        exec('''skillid = new_npc['skill'+str(i)]''')
+        exec('''skillbonus = new_npc['skillbonus'+str(i)]''')
+        skillname = idata.get(skillid, 'skills')
+        new_npc['race_data'][skillname] = int(skillbonus)
 
-        for i in range(8):
-            attr_name = idata.get(i, 'attributes')
-            key = attr_name + new_npc['sex']
-            exec('''attr_bonus = new_npc[key]''')
-            new_npc['race_data'][attr_name] = int(attr_bonus)
-        new_npcs[name] = new_npc
+    new_npc['npcflags'] = struct.unpack('<i', new_npc['FLAG'])[0]
 
-        if 'reputation' not in new_npc:
-            new_npc['reputation'] = 0
+    new_npc['sex'] = 'm'
+    if new_npc['npcflags'] % 2 == 1:
+        new_npc['sex'] = 'f'
 
+    for i in range(8):
+        attr_name = idata.get(i, 'attributes')
+        key = attr_name + new_npc['sex']
+        exec('''attr_bonus = new_npc[key]''')
+        new_npc['race_data'][attr_name] = int(attr_bonus)
+
+    if 'reputation' not in new_npc:
+        new_npc['reputation'] = 0
+
+
+    new_npcs[name] = new_npc
 
 for name, npc in new_npcs.iteritems():
     calc_attributes(npc)
@@ -130,8 +137,15 @@ for name, npc in new_npcs.iteritems():
     schema.encode_subrecord(npc, 'NPDT')
 
 
-def spell_success_formula(skill, will, luck, cost):
-    return skill*2.0 + 0.2*will + 0.1*luck - cost
+def spell_success_base(skill, will, luck, cost):
+    return (skill*2.0 + 0.2*will + 0.1*luck - cost) * 1.25 / 100.
+
+def spell_success(npc, spell):
+    worst = 1.0
+    for s in spell['schools']:
+        succ = spell_success_base(npc[s], npc['willpower'], npc['luck'], spell['cost'])
+        if succ < worst: worst = succ
+    return worst
 
 def get_tradeflag(x, npc):
     tf = bin(npc['tradeflags'])[2:].zfill(18)
@@ -152,21 +166,28 @@ for name, npc in npcs_base.iteritems():
             new_spell_vendors[name] = dict(npc)
             new_spell_vendors[name]['NPCS'] = []
 
+# give spells to vendors!
 
 for name, spell in spellgen.new_spells.iteritems():
+    attempts = 0
     if 'special' in spell['flags']: continue
     spell['n_occurrences'] = 0
     n_distributed = 0
     while (True):
+        attempts += 1
+        if attempts > SPELL_MAX_ATTEMPTS:
+            print 'Unable to find vendors for ' + spell['FNAM'] + '; reached ' + str(n_distributed)
+            break
         n_target = SPELL_MIN_OCCURRENCES
         npc_name = random.choice(new_spell_vendors.keys())
-        if npc_name.strip(NULL) in EXCLUDED_NPCS: continue
         npc = new_spell_vendors[npc_name]
+        if spell_success(npc, spell) < NPC_VENDOR_CAST_THRESHHOLD: continue
+        if npc_name.strip(NULL) in EXCLUDED_NPCS: continue
         if len(npc['NPCS']) < NPC_MAX_SPELLS:
             npc['NPCS'].append(struct.pack('32s', spell['NAME']))
             n_distributed += 1
 
-        if n_distributed > n_target:
+        if n_distributed >= n_target:
             spell['n_occurrences'] = n_distributed
             break
 
@@ -175,6 +196,7 @@ for name, npc in new_spell_vendors.iteritems():
     while(True):
         spell_name = random.choice(spellgen.new_spells.keys())
         spell = spellgen.new_spells[spell_name]
+        if spell_success(npc, spell) < NPC_VENDOR_CAST_THRESHHOLD: continue
         if 'special' in spell['flags']: break
         if spell['n_occurrences'] > SPELL_MAX_OCCURRENCES: break
 
@@ -186,4 +208,3 @@ for name, npc in new_spell_vendors.iteritems():
 output_names = ['spellmod', 'everything']
 outputs.update({'NPC_':new_npcs}, output_names)
 outputs.update({'NPC_':new_spell_vendors}, output_names)
-

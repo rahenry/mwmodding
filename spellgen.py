@@ -187,6 +187,7 @@ def read_spell_plaintext(data):
 
     res['ENAM'] = []
     res['enams'] = []
+    res['schools'] = []
     for d in data[1:]:
         autobuild = False
         if '!' in d:
@@ -194,6 +195,9 @@ def read_spell_plaintext(data):
             autobuild = True
         new_enam = build_ENAM(d, res, autobuild)
         res['ENAM'].append(new_enam['data'])
+        new_school = idata.get(new_enam['school'], 'schools')
+        if new_school not in res['schools']:
+            res['schools'].append(idata.get(new_enam['school'], 'schools'))
         res['enams'].append(new_enam)
 
     res['SPDT'] = schema.encode_subrecord(res, 'SPDT')
