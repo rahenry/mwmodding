@@ -29,3 +29,10 @@ bound_helm
 3 0 0 0
 jump 1
 
+bound_gloves
+2 1 1 0
+absorbhealth t 1 1 30 0
+absorbfatigue t 3 3 30 0
+drainattribute strength t 50 50 3 0
+resistpoison s 33 33 10 0
+resistnormalweapons s 33 33 10 0

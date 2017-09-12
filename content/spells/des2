@@ -4,4 +4,16 @@ light r 50 50 3 0
 light r 50 50 2 0
 light r 50 50 1 0
 
+Acrid Haze 49s
+poison! r 0.95 0 20 9
+drainattribute agility r 15 15 20 9
+drainattribute strength r 15 15 20 9
+
+Firehand 35s
+fire! m 1.02 60 4 
+
+Ironhand 31s
+damagehealth! m 0.53 40 1
+frost! m 0.53 40 1
+damagefatigue m 15 15 1
 

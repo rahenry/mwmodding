@@ -2,6 +2,10 @@ Bound Dagger 3
 flags bound
 bound_dagger 1 1 12
 
+Bound Gloves 25s
+flags bound
+bound_gloves 1 1 4
+
 Bound Staff 3
 flags bound
 bound_mace 1 1 12
