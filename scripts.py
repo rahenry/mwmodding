@@ -70,6 +70,10 @@ def make_script(script_file):
     f = open(script_file)
     script_body = ''
     script_name = PREFIX + 'script_' + os.path.basename(script_file).replace('.py', '')
+
+    if 'count_telvanni' in script_name:
+        script_name = 'CountWizardSpells'
+
     comments = []
     for l in f.readlines():
         if l[0] == '#': comments.append(l)
@@ -87,7 +91,6 @@ script_dir = os.path.abspath('data/scripts')
 sfiles = ut.get_file_list(script_dir)
 for s in sfiles:
     make_script(s)
-
 
 globdata = {
         "player_current_buffs" : ('l', 0),

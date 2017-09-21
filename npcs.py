@@ -174,13 +174,18 @@ for name, spell in spellgen.new_spells.iteritems():
     spell['n_occurrences'] = 0
     n_distributed = 0
     while (True):
+        n_target = SPELL_MIN_OCCURRENCES
+        npc_name = random.choice(new_spell_vendors.keys())
+        npc = new_spell_vendors[npc_name]
+
+        if spell['factions'] != []:
+            if ut.reductions(npc['ANAM'].strip(NULL)) not in spell['factions']:
+                if random.random() < 1.0: continue # obviously does nothing with this value
+
         attempts += 1
         if attempts > SPELL_MAX_ATTEMPTS:
             print 'Unable to find vendors for ' + spell['FNAM'] + '; reached ' + str(n_distributed)
             break
-        n_target = SPELL_MIN_OCCURRENCES
-        npc_name = random.choice(new_spell_vendors.keys())
-        npc = new_spell_vendors[npc_name]
         if spell_success(npc, spell) < NPC_VENDOR_CAST_THRESHHOLD: continue
         if npc_name.strip(NULL) in EXCLUDED_NPCS: continue
         if len(npc['NPCS']) < NPC_MAX_SPELLS:
@@ -208,3 +213,9 @@ for name, npc in new_spell_vendors.iteritems():
 output_names = ['spellmod', 'everything']
 outputs.update({'NPC_':new_npcs}, output_names)
 outputs.update({'NPC_':new_spell_vendors}, output_names)
+
+for name, npc in new_spell_vendors.iteritems():
+    for s in npc['NPCS']:
+        if 'divine' in s:
+            #print npc['ANAM']
+            1

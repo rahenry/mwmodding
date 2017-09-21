@@ -15,6 +15,7 @@ attack_types = {}
 new_spells = {}
 buffs = {}
 bounds = {}
+factions = set()
 
 def skill_to_will(s):
     pts = ((5., 40.), (100., 105.))
@@ -70,6 +71,7 @@ def eff_var(v):
     return 1.0 + v * (SDEV_EFFICIENCY_MAX - 1.0)
 
 def calc_mag(spell):
+    x = 1.
     if spell['magic_effect'] in attack_types:
         x = attack_types[spell['magic_effect']]['cost']
 
@@ -180,9 +182,16 @@ def read_spell_plaintext(data):
             data.remove(d)
 
     res['spell_type'] = 0
+
+    res['factions'] = []
     for f in res['flags']:
+        flag_reduced = ut.reductions(f.lower())
+        for fac in factions:
+            if flag_reduced in fac:
+                res['factions'].append(fac)
         spell_type = idata.find_key(f, 'spell_types')
         if spell_type: res['spell_type'] = spell_type
+
     res['spell_flags'] = make_spell_flags(res['flags'])
 
     res['ENAM'] = []
@@ -218,7 +227,13 @@ def make_buff_effect(spell):
     res['NAME'] += '_buffeffect'
     return res
 
+def read_factions():
+    for name, npc in esm.records_original['NPC_'].iteritems():
+        fac = ut.reductions(npc['ANAM'].strip(NULL))
+        factions.add(fac)
+
 read_attack_types()
+read_factions()
 for f in input_files:
     data = ut.read_newline_sep(f)
     for d in data:

@@ -1,0 +1,22 @@
+Scourging Blast 72s
+damagehealth! r 1.05 0.8 2 6
+damagefatigue r 100 100 1 6
+damagefatigue s 5 5 10 0
+
+Fire Storm 78s
+fire! r 1.05 0.3 2 11
+fire! s 0.1 0.0 2 0
+
+Khendrun's Mystic Siphon 82s
+absorbhealth! m 0.6 0.0 8 0
+drainhealth s 33 33 8 0
+
+Starblaze
+fire! m 0.34 0.9 1 0
+shock! m 0.34 0.9 1 0
+damagehealth! m 0.34 0.9 1 0
+
+Sonic Spear
+damagehealth! r 0.5 0.8 0 0
+shock! r 0.6 0.8 0 0
+sound s 25 25 4 0

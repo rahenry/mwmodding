@@ -1,0 +1,17 @@
+Scintillating Bolt 62s
+fire! r 0.33 99 0 0
+frost! r 0.33 99 0 0
+shock! r 0.33 99 0 0
+
+Fireball 51s
+fire! r 1.01 44 2 9
+
+Frost Blast 58s 
+frost! r 1.0 22 1 12
+
+Toxic Cloud 64s
+poison! r 1.0 0 12 12
+
+Scourging Grasp 66s
+shock! m 1.0 0 0 0
+sundamage m 25.0 1 0
