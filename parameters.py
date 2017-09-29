@@ -41,6 +41,7 @@ REDUCTIONS = [
         lambda x: x.lower(),
         ]
 MW_DATA_PATH = os.path.abspath(os.path.expanduser('~/.local/share/openmw/data'))
+#MW_DATA_PATH = os.path.abspath(os.path.expanduser('c:\mw_data'))
 AUTHOR_NAME = 'kuju'
 MOD_DESCRIPTION = 'mod123'
 DATA_DIR = os.path.abspath('data')

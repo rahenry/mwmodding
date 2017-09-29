@@ -4,6 +4,7 @@ from parameters import *
 import utility as ut
 import index_data as idata
 import struct
+import os
 
 
 # these subrecords can be used to create a unique identifier
@@ -18,7 +19,7 @@ record_subrecord_orderings = {}
 data_files = []
 for f in ut.get_file_list(MW_DATA_PATH):
     if not 'orrow' in f: continue
-    if '.esm' in f: data_files.append(f)
+    if '.esm' in f: data_files.append(os.path.abspath(f))
 #data_files = ["test.esm"]
 
 
@@ -88,7 +89,7 @@ def extract_records():
 
     data_raw = ""
     for d in data_files:
-        f = open(d)
+        f = open(d, 'rb') # b prevents windows fuckup
         data_raw += f.read()
         f.close()
 
