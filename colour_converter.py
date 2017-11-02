@@ -24,6 +24,7 @@ def get_hsl_average(file_name):
     return map(lambda x: x/float(len(a)), hsl_average)
 
 def recolour(source_file, objective_file, output_file):
+    print source_file, objective_file, output_file
     h1 = get_hsl_average(source_file)[0]
     h2 = get_hsl_average(objective_file)[0]
     s1 = get_hsl_average(source_file)[1]

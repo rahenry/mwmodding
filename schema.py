@@ -168,20 +168,20 @@ def decode_plaintext(data, t):
         #data = data.split()
 
 
-    scheme = scheme_data[t]['scheme']
+    scheme = list(scheme_data[t]['scheme'])
     if not len(scheme) == len(data):
         for subscheme in scheme_data[t]['subschema']:
             if len(subscheme) == len(data):
                 scheme = subscheme
 
-    scheme = list(scheme)
     for d in data:
         if not ut.is_numeric(d):
             for s in scheme:
                 z = decode_plaintext_entry(d, s)
                 if z:
                     res[s] = z
-                    scheme.delete(s)
+                    print scheme
+                    scheme.remove(s)
     ind = 0
     for s in scheme:
         res[s] = decode_plaintext_entry(data[ind], s)

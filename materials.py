@@ -14,7 +14,7 @@ materials = {}
 
 for f in input_files:
     data = ut.read_newline_sep(f)
-    material_type = (os.path.basename(f)).split('_')[1]
+    material_type = (os.path.basename(f)).split('_')[1] # WEAP, ARMO, etc?
     materials[material_type] = {}
     for d in data:
 
