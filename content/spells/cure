@@ -1,0 +1,9 @@
+Cure Common Disease 28s
+curecommondisease s 1 1 0 0
+curecommondisease m 1 1 0 0
+damagefatigue s 1 1 0 100
+
+Cure Blight Disease 78s
+cureblightdisease s 1 1 0 0
+cureblightdisease m 1 1 0 0
+damagefatigue s 5 5 0 100

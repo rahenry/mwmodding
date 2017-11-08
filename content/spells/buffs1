@@ -1,8 +1,3 @@
-Verrugo's Sea-plodder 30s
-flags buff1
-water_walking
-burden 100
-
 Buoyancy 15s
 flags buff1
 jump 1
@@ -41,19 +36,5 @@ feather 40
 fortifyattribute speed 25
 drainattribute endurance 25
 drainattribute strength 25
-
-Aqualung 24s
-flags buff1
-waterbreathing
-burden 100
-
-Hypersensitise 12s
-flags buff0
-nighteye 15
-blind 15
-
-Starlight 3
-flags buff0
-light 8
 
 

@@ -151,6 +151,7 @@ def read_spell_plaintext(data):
     res = {}
     flags = []
 
+    data = [d for d in data if d != '']
     data[0] = data[0].split()
     cost = data[0][-1]
     if (ut.is_numeric(cost) or ut.is_numeric(cost[0:-1])):

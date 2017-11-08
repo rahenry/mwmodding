@@ -53,3 +53,4 @@ def update_non_existing_inplace(original_dict, to_add):
     for key in to_add.iterkeys():
         if key not in original_dict:
             original_dict[key] = to_add[key]
+

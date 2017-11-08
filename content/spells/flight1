@@ -1,3 +1,17 @@
+
+Float 55s
+flags buff2
+levitate 1
+
+Levitate 72s
+flags buff3
+levitate 15
+
+Flight 88s
+flags buff4
+levitate 50
+
+
 Windform 100s
 flags buff4
 levitate 50

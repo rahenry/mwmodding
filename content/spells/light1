@@ -1,0 +1,20 @@
+Starlight 3
+flags buff0
+light 8
+
+Hypersensitise 12s
+flags buff0
+nighteye 15
+blind 15
+
+Soulglow 28s
+flags buff0
+light 25
+damagefatigue 1
+
+Burning glow 35s
+flags buff0
+light 25
+firedamage 1
+
+

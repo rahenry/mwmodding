@@ -4,6 +4,7 @@ lock m 99
 
 Knock 2
 open m 10
+telekinesis s 5 5 15 0
 
 Unhinge 5
 open m 20
