@@ -1,6 +1,5 @@
 import argparse
 import ConfigParser
-from collections import OrderedDict
 import StringIO
 from MultiOrderedDict import MultiOrderedDict
 

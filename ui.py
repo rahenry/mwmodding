@@ -1,17 +1,33 @@
+import os
+import ConfigParser
+import StringIO
+import subprocess
+from Tkinter import *
 from MultiOrderedDict import MultiOrderedDict
 
+class gui:
+    def __init__(self, master):
+        self.master = master
+        master.title = ("GUI")
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--input_file', nargs=1, default='defaults')
-#parser.add_argument('--regenerate_spell_icons', nargs=1, default=True, type=bool)
-#parser.add_argument('--npcs', nargs=1, default=True, type=bool)
-args = parser.parse_args()
+        options_file = os.path.abspath('ui_options')
+        self.options = ConfigParser.ConfigParser(dict_type = MultiOrderedDict)
+        self.options.read(options_file)
 
-print args.input_file
+        self.run_button = Button(root, command=self.run_main, text='Run')
+        self.run_button.grid(column=0, row=0)
 
-options = ConfigParser.ConfigParser(dict_type = MultiOrderedDict)
-options.read(args.input_file)
+    def run_main(self):
+        command = ['python', 'main.py']
+        self.proc = subprocess.Popen(command)
 
+        self.master.state('disabled')
+        while self.proc.poll() is None:
+            1
+
+root = Tk()
+gui1 = gui(root)
+root.mainloop()
 
 openmwcfg_path = '/home/rah2/.config/openmw/openmw.cfg'
 ini_str = '[root]\n' + open(openmwcfg_path, 'r').read()
