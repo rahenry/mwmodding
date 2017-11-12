@@ -2,6 +2,7 @@ import argparse
 import ConfigParser
 import StringIO
 from MultiOrderedDict import MultiOrderedDict
+import os
 
 
 parser = argparse.ArgumentParser()
@@ -16,7 +17,7 @@ options = ConfigParser.ConfigParser(dict_type = MultiOrderedDict)
 options.read(args.input_file)
 
 
-openmwcfg_path = '/home/rah/.config/openmw/openmw.cfg'
+openmwcfg_path = os.path.abspath(os.path.expanduser('~/.config/openmw/openmw.cfg'))
 ini_str = '[root]\n' + open(openmwcfg_path, 'r').read()
 ini_fp = StringIO.StringIO(ini_str)
 openmwcfg = ConfigParser.ConfigParser(dict_type = MultiOrderedDict)

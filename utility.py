@@ -1,6 +1,9 @@
 from parameters import *
 import struct
 import os
+from MultiOrderedDict import MultiOrderedDict
+import StringIO
+import ConfigParser
 def is_numeric(x):
     try:
         float(x)
@@ -54,3 +57,10 @@ def update_non_existing_inplace(original_dict, to_add):
         if key not in original_dict:
             original_dict[key] = to_add[key]
 
+
+def read_headless_config(path):
+    ini_str = '[root]\n' + open(path, 'r').read()
+    ini_fp = StringIO.StringIO(ini_str)
+    openmwcfg = ConfigParser.ConfigParser(dict_type = MultiOrderedDict)
+    openmwcfg.readfp(ini_fp)
+    return openmwcfg
