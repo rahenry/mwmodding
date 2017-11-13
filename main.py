@@ -24,6 +24,14 @@ openmwcfg = ConfigParser.ConfigParser(dict_type = MultiOrderedDict)
 openmwcfg.readfp(ini_fp)
 
 
+def find_esps(config_path):
+    print config_path
+
+find_esps(openmwcfg_path)
+
+
+
+
 
 
 import index_data
