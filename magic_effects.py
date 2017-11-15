@@ -7,6 +7,7 @@ import schema
 import os
 import outputs
 import colour_converter
+import config
 
 def make_new_icon(mgef):
     icon_path = ('icons/' + mgef['name'] + '.dds')
@@ -22,7 +23,7 @@ def make_new_icon(mgef):
 
 
 reference_icons = {}
-def process_mgefs(options):
+def process_mgefs():
 
     icon_dir = os.path.abspath('output/icons')
     if not os.path.exists(icon_dir):
@@ -56,7 +57,7 @@ def process_mgefs(options):
                 mgef.update(schema.decode_plaintext(d[1:], 'MEDT'))
             schema.encode_all_subrecords(mgef)
 
-            if options.getboolean('settings', 'regenerate_spell_icons'):
+            if config.options.getboolean('settings', 'regenerate_spell_icons'):
                 if school_old != mgef['school']:
                     mgef['ITEX'] = make_new_icon(mgef)
 

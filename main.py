@@ -1,51 +1,18 @@
-import argparse
-import ConfigParser
-import StringIO
-from MultiOrderedDict import MultiOrderedDict
-import os
 
-
-parser = argparse.ArgumentParser()
-parser.add_argument('--input_file', nargs=1, default='defaults')
-#parser.add_argument('--regenerate_spell_icons', nargs=1, default=True, type=bool)
-#parser.add_argument('--npcs', nargs=1, default=True, type=bool)
-args = parser.parse_args()
-
-print args.input_file
-
-options = ConfigParser.ConfigParser(dict_type = MultiOrderedDict)
-options.read(args.input_file)
-
-
-openmwcfg_path = os.path.abspath(os.path.expanduser('~/.config/openmw/openmw.cfg'))
-ini_str = '[root]\n' + open(openmwcfg_path, 'r').read()
-ini_fp = StringIO.StringIO(ini_str)
-openmwcfg = ConfigParser.ConfigParser(dict_type = MultiOrderedDict)
-openmwcfg.readfp(ini_fp)
-
-
-def find_esps(config_path):
-    print config_path
-
-find_esps(openmwcfg_path)
-
-
-
-
-
-
+import config
 import index_data
 import esm
+esm.extract_records(config.mod_paths)
 import schema
 import outputs
 import magic_effects
-magic_effects.process_mgefs(options)
+magic_effects.process_mgefs()
 import spellgen
 import materials
 import item_types
 import races
 import npcs
-npcs.process_npcs(options)
+npcs.process_npcs()
 import scripts
 import enchantments
 import itemgen

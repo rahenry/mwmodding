@@ -10,6 +10,7 @@ import schema
 import outputs
 import spellgen
 import races
+import config
 
 def spell_success_base(skill, will, luck, cost):
     return (skill*2.0 + 0.2*will + 0.1*luck - cost) * 1.25 / 100.
@@ -94,8 +95,8 @@ skills = {}
 npcs_base = {}
 new_npcs = {}
 
-def process_npcs(options):
-    if not options.getboolean('settings', 'process_npcs'): return
+def process_npcs():
+    if not config.options.getboolean('settings', 'process_npcs'): return
     for name, skill in esm.records_original['SKIL'].iteritems():
         skills[name] = dict(skill)
         skills[name].update(schema.decode_subrecord(skills[name]['SKDT'], 'SKDT'))
