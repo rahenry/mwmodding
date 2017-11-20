@@ -13,13 +13,18 @@ id_encoding_types = ['NAME', 'SCHD']
 null_terminated_types = ['NAME', 'FNAM']
 
 records_original = {}
-NPC_special_ordering = ['NAME', 'FNAM', 'MODL', 'RNAM', 'CNAM', 'ANAM', 'BNAM', 'KNAM', 'NPDT', 'SCRI', 'FLAG', 'NPCO', 'NPCS', 'AI_W', 'AI_T', 'AI_F', 'AI_E', 'CNDT', 'AIDT', 'DODT', 'DNAM', 'XSCL']
+#NPC_special_ordering = ['NAME', 'FNAM', 'MODL', 'RNAM', 'CNAM', 'ANAM', 'BNAM', 'KNAM', 'NPDT', 'SCRI', 'FLAG', 'NPCO', 'NPCS', 'AIDT', 'DODT', 'AI_W', 'AI_T', 'AI_F', 'AI_E', 'CNDT', 'DODT', 'DNAM', 'XSCL']
+#NPC_special_ordering = ['NAME', 'FNAM', 'MODL', 'RNAM', 'CNAM', 'ANAM', 'BNAM', 'KNAM', 'NPDT', 'SCRI', 'FLAG', 'NPCO', 'NPCS', 'AI_W', 'AI_T', 'AI_F', 'AI_E', 'AIDT', 'CNDT', 'DODT', 'DNAM', 'XSCL']
+#NPC_special_ordering = ['NAME', 'FNAM', 'MODL', 'RNAM', 'CNAM', 'ANAM', 'BNAM', 'KNAM', 'NPDT', 'SCRI', 'FLAG', 'NPCO', 'NPCS', 'AIDT', 'DODT', 'AI_W', 'AI_T', 'AI_F', 'AI_E', 'CNDT', 'XSCL']
+#NPC_special_ordering = ['NAME', 'FNAM', 'MODL', 'RNAM', 'CNAM', 'ANAM', 'BNAM', 'KNAM', 'NPDT', 'SCRI', 'FLAG', 'NPCO', 'NPCS', 'AI_W', 'AI_T', 'AI_F', 'AI_E', 'AIDT', 'CNDT', 'DODT', 'DNAM', 'XSCL']
+NPC_special_ordering = ['NAME', 'FNAM', 'MODL', 'RNAM', 'CNAM', 'ANAM', 'BNAM', 'KNAM', 'NPDT', 'SCRI', 'FLAG', 'NPCO', 'NPCS', 'AIDT', 'DODT', 'AI_W', 'AI_T', 'AI_F', 'AI_E', 'CNDT', 'XSCL']
 record_subrecord_orderings = {}
+record_subrecord_orderings['NPC_'] = NPC_special_ordering
 
-data_files = []
-for f in ut.get_file_list(MW_DATA_PATH):
-    if not 'orrow' in f: continue
-    if '.esm' in f: data_files.append(os.path.abspath(f))
+#data_files = []
+#for f in ut.get_file_list(MW_DATA_PATH):
+    #if not 'orrow' in f: continue
+    #if '.esm' in f: data_files.append(os.path.abspath(f))
 #data_files = ["test.esm"]
 
 
@@ -36,6 +41,7 @@ def make_id(rec, rtype):
     return None
         
 def update_record_subrecord_orderings(subrecord_order, rtype):
+    if rtype == 'NPC_': return
     if rtype not in record_subrecord_orderings:
         record_subrecord_orderings[rtype] = subrecord_order
         return
@@ -47,6 +53,8 @@ def extract_record(d, rtype):
     res = {}
     i = 0
     subrecord_order = []
+    if rtype == 'NPC_' or rtype == 'GLOB':
+        1
     while (i < len(d)):
         subr_name = d[i:i+4]
         if not subr_name in subrecord_order: subrecord_order.append(subr_name)
@@ -55,23 +63,36 @@ def extract_record(d, rtype):
 
 
         # if we're on an armour record and an INDX subrecord, see if there's a BNAM next and if so, just add it to the INDX data
-        if (rtype == 'ARMO' and subr_name == 'INDX'):
-        #if (0):
-            if 'INDX' not in res: res['INDX'] = []
-            subr_data = [subr_data, ""]
-            offset = i+8+s
-            while (True):
-                if len(d) > offset+8 and d[offset:offset+4] in ['CNAM', 'BNAM']:
-                    bnam_size = struct.unpack('<i', d[offset+4:offset+8])[0]
-                    bnam_data = d[offset+8:offset+8+bnam_size]
-                    BNAM = d[offset:offset+8+bnam_size]
-                    subr_data[1] += BNAM
-                    #if d[offset:offset+4] == 'CNAM': print BNAM
-                    offset += bnam_size + 8
-                    s += bnam_size+8
-                    # skip the BNAM record which comes after!
-                else:
-                    break
+        especials = [
+                {'rtype' : 'ARMO',
+                    'subr_name' : 'INDX',
+                    'adjoin_subr_types' : ['CNAM', 'BNAM'],
+                    },
+                {'rtype' : 'NPC_',
+                    'subr_name' : 'DODT',
+                    'adjoin_subr_types' : ['DNAM'],
+                    },
+                ]
+
+        for es in especials:
+            if (rtype == es['rtype'] and subr_name == es['subr_name']):
+            #if (0):
+                if es['subr_name'] not in res: res[es['subr_name']] = []
+                subr_data = [subr_data, ""]
+                offset = i+8+s
+                while (True):
+                    if len(d) > offset+8 and d[offset:offset+4] in es['adjoin_subr_types']:
+                        bnam_size = struct.unpack('<i', d[offset+4:offset+8])[0]
+                        bnam_data = d[offset+8:offset+8+bnam_size]
+                        BNAM = d[offset:offset+8+bnam_size]
+                        subr_data[1] += BNAM
+                        #if d[offset:offset+4] == 'CNAM': print BNAM
+                        offset += bnam_size + 8
+                        s += bnam_size+8
+                        # skip the BNAM record which comes after!
+                    else:
+                        break
+
 
         if not subr_name in res: res[subr_name] = subr_data
         else:
@@ -85,7 +106,8 @@ def extract_record(d, rtype):
 def extract_records(data_files):
     for rtype in RECORD_TYPES_OF_INTEREST:
         records_original[rtype] = {}
-        record_subrecord_orderings[rtype] = []
+        if rtype not in record_subrecord_orderings:
+            record_subrecord_orderings[rtype] = []
 
     data_raw = ""
     for d in data_files:
@@ -108,16 +130,17 @@ def extract_records(data_files):
             
         i += 16+rsize
 
-def encode_subrecord(subr_type, s):
+def encode_subrecord(subr_type, s, rtype):
     res = ""
     if isinstance(s, list):
         #print s
-        res += encode_subrecord(subr_type, s[0])
+        res += encode_subrecord(subr_type, s[0], rtype)
         res += s[1]
         return res
     res += subr_type
     if subr_type in null_terminated_types and s[-1] != NULL:
-        s += NULL
+        if not rtype == 'GLOB':
+            s += NULL
     res += struct.pack('<i', len(s))
     res += s
     return res
@@ -135,7 +158,7 @@ def encode_record(rtype, d):
         if subr_type in d:
             subr = d[subr_type]
             for s in subr:
-                res += encode_subrecord(subr_type, s)
+                res += encode_subrecord(subr_type, s, rtype)
     return rtype + struct.pack('<iii', len(res), 0, 0) + res
 
 def encode_esp(records):
@@ -151,13 +174,12 @@ def encode_esp(records):
     return encode_record('TES3', TES3) + data
 
 def write_esp(records, file_name):
-    f = open(file_name, 'w+')
+    f = open(file_name, 'w+b')
     f.write(encode_esp(records))
     f.close()
 
 #extract_records()
 
-record_subrecord_orderings['NPC_'] = NPC_special_ordering
 #test_recs = dict(records_original)
 #test_recs['NPC_'] = {}
 #zzz = ['arrille']

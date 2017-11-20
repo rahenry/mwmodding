@@ -35,6 +35,7 @@ def set_tradeflag(x, val, npc):
 
 
 def calc_attributes(npc):
+    name = npc['FNAM']
     attribute_coefs = {}
     for attrid in range(8):
         attribute_coefs[attrid] = 0
@@ -96,7 +97,9 @@ npcs_base = {}
 new_npcs = {}
 
 def process_npcs():
-    if not config.options.getboolean('settings', 'process_npcs'): return
+    if not config.options.getboolean('settings', 'process_npcs'):
+        print "Skipping NPCs...."
+        return
     for name, skill in esm.records_original['SKIL'].iteritems():
         skills[name] = dict(skill)
         skills[name].update(schema.decode_subrecord(skills[name]['SKDT'], 'SKDT'))
@@ -106,15 +109,13 @@ def process_npcs():
         if 'player' in name: continue
         npcs_base[name] = dict(npc)
         new_npc = npcs_base[name]
+
         schema.decode_all_subrecords(new_npc)
-
-        #if new_npc['level'] == 7: continue
-        #if new_npc['level'] == 17: continue
-        #if 'SCRI' in new_npc: print lev
-        #print new_npc['level']
-
+        
         cl = esm.records_original['CLAS'][npc['CNAM'].strip(NULL)]
         new_npc.update(schema.decode_subrecord(cl['CLDT'], 'CLDT'))
+        if 'AIDT' in new_npc:
+            new_npc.update(schema.decode_subrecord(new_npc['AIDT'], 'AIDT'))
         new_npc['majors'] = []
         new_npc['minors'] = []
         for i in range(1,6):
@@ -162,7 +163,7 @@ def process_npcs():
         schema.encode_subrecord(npc, 'NPDT')
 
     new_spell_vendors = {}
-    for name, npc in npcs_base.iteritems():
+    for name, npc in new_npcs.iteritems():
         tradeflags = npc['tradeflags']
         if tradeflags != 0:
             spellmaking = get_tradeflag(12, npc)
@@ -206,12 +207,14 @@ def process_npcs():
             spell_name = random.choice(spellgen.new_spells.keys())
             spell = spellgen.new_spells[spell_name]
             if spell_success(npc, spell) < NPC_VENDOR_CAST_THRESHHOLD: continue
-            if 'special' in spell['flags']: break
-            if spell['n_occurrences'] > SPELL_MAX_OCCURRENCES: break
+            if 'special' in spell['flags']: continue
+            if spell['n_occurrences'] > SPELL_MAX_OCCURRENCES: 
+                print 1
+                continue
+            if len(npc['NPCS']) >= NPC_MIN_SPELLS: break
 
             npc['NPCS'].append(spell['NAME'])
             spell['n_occurrences'] += 1
-
 
 
     output_names = ['spellmod', 'everything']

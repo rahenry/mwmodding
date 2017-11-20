@@ -1,7 +1,7 @@
 import os 
 import esm
 import config
-output_names = [config.options.get('settings', 'outputpath')]
+output_names = [config.options.get('settings', 'output_path')]
 outputs = {}
 def make_output(name):
     outputs[name] = {}
@@ -21,7 +21,6 @@ def write():
 def update(recs, targets):
     if output_names[0] not in targets:
         targets.append(output_names[0])
-    print targets
     for o in targets:
         if o not in output_names:
             make_output(o)

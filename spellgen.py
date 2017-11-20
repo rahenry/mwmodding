@@ -278,6 +278,10 @@ def spell_report():
             tier = get_tier(spell)
             attack_type_data[a]['T'+str(tier)] += 1
 
+    if not os.path.exists('reports'):
+        os.mkdir('reports')
+    if not os.path.exists('reports/spellgen'):
+        os.mkdir('reports/spellgen')
     f = open(os.path.abspath('reports/spellgen/attack_types'), 'w+')
     f.write('%-15s ' % '')
     for i in range(1, 6):

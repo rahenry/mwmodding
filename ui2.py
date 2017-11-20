@@ -8,22 +8,27 @@ from MultiOrderedDict import MultiOrderedDict
 import utility as ut
 import tkFileDialog
 
-mwini_path = ''
 def run_main2():
     run_button['state'] = DISABLED
     run_button.grid_forget()
     run_button.update()
-    run_dummy.grid(column=0, row=1)
+    run_dummy.grid(column=0, row=3)
     run_dummy.update()
-    command = ['python', 'main.py']
-    #subprocess.call(command)
+    command = ['python', 'main.py',  '--input_file', 'ui_options']
+    try:
+        subprocess.check_call(command)
+    except subprocess.CalledProcessError:
+        print 'No python present, trying executable...'
+        command = ['main.exe',  '--input_file', 'ui_options']
+        subprocess.call(command)
+
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate()
     output_text.delete('1.0', END)
     output_text.insert(END, stdout)
     run_button['state'] = NORMAL
     run_button.update()
-    run_button.grid(column=0, row=1)
+    run_button.grid(column=0, row=3)
     run_dummy.grid_forget()
     run_dummy.update()
 
@@ -52,25 +57,27 @@ def on_closing():
     root.destroy()
 
 def save_options():
-    options.set('settings', 'inputpath', inputpath_text.get())
-    options.set('settings', 'outputpath', outputpath_text.get())
+    if not options.has_section('settings'):
+        options.add_section('settings')
+    options.set('settings', 'modlist_path', inputpath_text.get())
+    options.set('settings', 'output_path', outputpath_text.get())
     options.write(open('ui_options', 'w+'))
 
 def read_options():
-    options.get('settings', 'inputpath')
-    if options.has_option('settings', 'inputpath'):
+    if options.has_option('settings', 'modlist_path'):
         inputpath_text.delete(0, END)
-        inputpath_text.insert(END, options.get('settings', 'inputpath'))
-    if options.has_option('settings', 'outputpath'):
+        inputpath_text.insert(END, options.get('settings', 'modlist_path'))
+    if options.has_option('settings', 'output_path'):
         outputpath_text.delete(0, END)
-        outputpath_text.insert(END, options.get('settings', 'outputpath'))
+        outputpath_text.insert(END, options.get('settings', 'output_path'))
 
-
-options = ConfigParser.ConfigParser(dict_type = MultiOrderedDict)
-options_file = os.path.abspath('ui_options')
-options.read(options_file)
+mwini_path = ''
 
 root = Tk()
+
+options = ConfigParser.ConfigParser()
+options.read('ui_options')
+
 
 
 run_button = Button(root, command=run_main2, text='Run')
